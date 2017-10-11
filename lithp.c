@@ -7,21 +7,81 @@
 #include "mpc.h"
 
 
-long eval_op(long x, char* op, long y) {
-        if (strcmp(op, "+") == 0) return x + y;
-        if (strcmp(op, "-") == 0) return x - y;
-        if (strcmp(op, "*") == 0) return x * y;
-        if (strcmp(op, "/") == 0) return x / y;
-        return 0;
+enum { LVAL_NUMBER, LVAL_ERR };
+enum { ERR_ZERO_DIVISION, ERR_BAD_OP, ERR_BAD_NUMBER };
+
+
+typedef struct {
+        int type;
+        long num;
+        int err;
+} lval;
+
+
+lval lval_number(long x) {
+        lval v;
+        v.type = LVAL_NUMBER;
+        v.num = x;
+        return v;
 }
 
 
-long eval(mpc_ast_t* node) {
-        if (strstr(node->tag, "number"))
-                return atoi(node->contents);
+lval lval_error(long x) {
+        lval v;
+        v.type = LVAL_ERR;
+        v.err = x;
+        return v;
+}
+
+
+void lval_print(lval v) {
+        if (v.type == LVAL_NUMBER)
+                printf("%li", v.num);
+        else if (v.type == LVAL_ERR) {
+                printf("Error: ");
+                if (v.err == ERR_ZERO_DIVISION)
+                        printf("Division by 0");
+                if (v.err == ERR_BAD_OP)
+                        printf("Invalid Operator");
+                if (v.err == ERR_BAD_NUMBER)
+                        printf("Invalid Number");
+        }
+}
+
+
+void lval_println(lval v) {
+        lval_print(v);
+        putchar('\n');
+}
+
+
+lval eval_op(lval x, char* op, lval y) {
+        if (x.type == LVAL_ERR) return x;
+        if (y.type == LVAL_ERR) return y;
+
+        if (strcmp(op, "+") == 0) return lval_number(x.num + y.num);
+        if (strcmp(op, "-") == 0) return lval_number(x.num - y.num);
+        if (strcmp(op, "*") == 0) return lval_number(x.num * y.num);
+        if (strcmp(op, "/") == 0) {
+                if (y.num == 0) return lval_error(ERR_ZERO_DIVISION);
+                return lval_number(x.num / y.num);
+        }
+
+        return lval_error(ERR_BAD_OP);
+}
+
+
+lval eval(mpc_ast_t* node) {
+        if (strstr(node->tag, "number")) {
+                /* Check for error in conversion */
+                errno = 0;
+                long x = strtol(node->contents, NULL, 10);
+                if (errno == ERANGE) return lval_error(ERR_BAD_NUMBER);
+                return lval_number(x); 
+        }
         
         char* op = node->children[1]->contents;
-        long x = eval(node->children[2]);
+        lval x = eval(node->children[2]);
 
         for (int i = 3; strstr(node->children[i]->tag, "expr"); i++)
                 x = eval_op(x, op, eval(node->children[i]));
@@ -45,7 +105,7 @@ int main(int argc, char** argv) {
                 ",
                 Number, Operator, Expr, Program);
 
-        puts("Lithp 0.0.1");
+        puts("Lithp 0.0.2");
         puts("Preth Ctrl+c to Exit\n");
 
         while (1) {
@@ -54,7 +114,8 @@ int main(int argc, char** argv) {
 
                 mpc_result_t r;
                 if (mpc_parse("<stdin>", input, Program, &r)) {
-                        printf("%li\n", eval(r.output));
+                        lval result = eval(r.output);
+                        lval_println(result);
                         mpc_ast_delete(r.output);
                 } else {
                         mpc_err_print(r.error);
