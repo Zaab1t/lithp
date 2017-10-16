@@ -7,8 +7,30 @@
 #include "mpc.h"
 
 
-#define ASSERT(args, cond, err) \
-    if (!(cond)) { lval_clean_up(args); return lval_err(err); }
+#define ASSERT(args, cond, fmt, ...) \
+    if (!(cond)) { \
+        lval* err = lval_err(fmt, ##__VA_ARGS__); \
+        lval_clean_up(args); \
+        return err; \
+    }
+
+#define ASSERT_ARG_COUNT(func, args, num) \
+    ASSERT(args, args->count == num, \
+            "'%s' expected %i arguments, but got %i.", \
+            func, num, args->count \
+    )
+
+#define ASSERT_TYPE(func, args, index, expect) \
+    ASSERT(args, args->cell[index]->type == expect, \
+            "'%s' expected type %s at %i, but got %s.", \
+            func, ltype_to_name(expect), index, \
+            ltype_to_name(args->cell[index]->type) \
+    )
+
+#define ASSERT_NOT_EMPTY(func, args, index) \
+    ASSERT(args, args->cell[index]->count != 0, \
+            "'%s' can't work on empty lists", func \
+    )
 
 
 struct lval;
@@ -21,6 +43,26 @@ enum {
     LVAL_ERR, LVAL_NUM, LVAL_SYM,
     LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR,
 };
+
+
+char* ltype_to_name(int type) {
+    switch (type) {
+        case LVAL_ERR:
+            return "Error";
+        case LVAL_NUM:
+            return "Number";
+        case LVAL_SYM:
+            return "Symbol";
+        case LVAL_FUN:
+            return "Function";
+        case LVAL_SEXPR:
+            return "S-Expression";
+        case LVAL_QEXPR:
+            return "Q-Expression";
+        default:
+            return "Not my type";
+    }
+}
 
 
 struct lenv {
@@ -47,11 +89,19 @@ struct lval {
 };
 
 
-lval* lval_err(char* m) {
+lval* lval_err(char* fmt, ...) {
     lval* v = malloc(sizeof(lval));
     v->type = LVAL_ERR;
-    v->err = malloc(strlen(m) + 1);
-    strcpy(v->err, m);
+
+    va_list va;
+    va_start(va, fmt);
+
+    /* edit here for longer error messages */
+    v->err = malloc(512);
+    vsnprintf(v->err, 511, fmt, va);
+
+    v->err = realloc(v->err, strlen(v->err) + 1);
+    va_end(va);
     return v;
 }
 
@@ -239,7 +289,7 @@ lval* lenv_get(lenv* e, lval* k) {
     for (int i = 0; i < e->count; i++)
         if (strcmp(e->syms[i], k->sym) == 0)
             return lval_copy(e->vals[i]);
-    return lval_err("Unbound symbol!");
+    return lval_err("Unbound symbol '%s'!", k->sym);
 }
 
 
@@ -311,9 +361,8 @@ lval* builtin_list(lenv* e, lval* a) {
 
 
 lval* builtin_eval(lenv* e, lval* a) {
-    ASSERT(a, a->count == 1, "'eval' passed too many arguments!");
-    ASSERT(a, a->cell[0]->type == LVAL_QEXPR,
-            "'eval' passed incorrect type!");
+    ASSERT_ARG_COUNT("eval", a, 1);
+    ASSERT_TYPE("eval", a, 0, LVAL_QEXPR);
 
     lval* x = lval_take(a, 0);
     x->type = LVAL_SEXPR;
@@ -322,10 +371,9 @@ lval* builtin_eval(lenv* e, lval* a) {
 
 
 lval* builtin_head(lenv* e, lval* a) {
-    ASSERT(a, a->count == 1, "'head' passed too many arguments!");
-    ASSERT(a, a->cell[0]->type == LVAL_QEXPR,
-            "'head' passed incorrect type!");
-    ASSERT(a, a->cell[0]->count != 0, "'head' passed {}!");
+    ASSERT_ARG_COUNT("head", a, 1);
+    ASSERT_TYPE("head", a, 0, LVAL_QEXPR);
+    ASSERT_NOT_EMPTY("head", a, 0);
 
     lval* v = lval_take(a, 0);
     while (v->count > 1) lval_clean_up(lval_pop(v, 1));
@@ -334,10 +382,9 @@ lval* builtin_head(lenv* e, lval* a) {
 
 
 lval* builtin_tail(lenv* e, lval* a) {
-    ASSERT(a, a->count == 1, "'tail' passed too many arguments!");
-    ASSERT(a, a->cell[0]->type == LVAL_QEXPR,
-            "'tail' passed incorrect type!");
-    ASSERT(a, a->cell[0]->count != 0, "'tail' passed {}!");
+    ASSERT_ARG_COUNT("tail", a, 1);
+    ASSERT_TYPE("tail", a, 0, LVAL_QEXPR);
+    ASSERT_NOT_EMPTY("tail", a, 0);
 
     lval* v = lval_take(a, 0);
     lval_clean_up(lval_pop(v, 0));
@@ -355,8 +402,7 @@ lval* lval_join(lval* x, lval* y) {
 
 lval* builtin_join(lenv* e, lval* a) {
     for (int i = 0; i < a->count; i++)
-        ASSERT(a, a->cell[i]->type == LVAL_QEXPR,
-                "'join' passed incorrect type!");
+        ASSERT_TYPE("join", a, i, LVAL_QEXPR);
 
     lval* x = lval_pop(a, 0);
     while (a->count)
@@ -368,11 +414,9 @@ lval* builtin_join(lenv* e, lval* a) {
 
 
 lval* builtin_def(lenv* e, lval* a) {
-    ASSERT(a, a->cell[0]->type == LVAL_QEXPR,
-            "'def' passed incorrect type!");
+    ASSERT_TYPE("def", a, 0, LVAL_QEXPR);
 
     lval* syms = a->cell[0];
-
     /* ensure valid symbols */
     for (int i = 0; i < syms->count; i++)
         ASSERT(a, syms->cell[i]->type == LVAL_SYM,
@@ -542,7 +586,7 @@ int main(int argc, char** argv) {
         Number, Symbol, Sexpr, Qexpr, Expr, Program
     );
 
-    puts("Lithp 0.0.5");
+    puts("Lithp 0.0.6");
     puts("Preth Ctrl+c to Exit\n");
 
     lenv* e = lenv_new();
