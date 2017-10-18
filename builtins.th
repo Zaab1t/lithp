@@ -1,0 +1,161 @@
+(def
+    {nil true false}
+     {}  1    0 
+)
+
+
+(def {fun} (\ {f b} {
+    def (head f) (\ (tail f) b)
+}))
+
+
+(fun {unpack f l} {
+    eval (join (list f) l)
+})
+
+
+(fun {pack x : xs} {f xs})
+
+
+(fun {do : l} {
+    if (== l nil)
+        {nil}
+        {last l}
+})
+
+
+(fun {let b} {
+    ((\ {_} b) ())
+})
+
+
+(fun {not x} {
+    {- 1 x}
+})
+
+
+(fun {or x y} {
+    {+ x y}
+})
+
+
+(fun {and x y} {
+    {* x y}
+})
+
+
+(fun {comp f g x} {
+    f (g x)
+})
+
+
+(fun {fst l} {
+    eval (head l)
+})
+
+
+(fun {snd l} {
+    eval (head (tail l))
+})
+
+
+(fun {trd l} {
+    eval (head (tail (tail l)))
+})
+
+
+(fun {len l} {
+    if (== l nil)
+        {0}
+        {+ 1 (len (tail l))}
+})
+
+
+(fun {get l i} {
+    if (== i 0)
+        {fst l}
+        {get (tail l) (- i 1)}
+})
+
+
+(fun {last l} {
+    if (== (len l) 1)
+        {fst l}
+        {last (tail l)}
+})
+
+
+(fun {take l n} {
+    if (== n 0)
+        {nil}
+        {join (head l) (take (tail l) (- n 1))}
+})
+
+
+(fun {drop l n} {
+    if (== n 0)
+        {l}
+        {drop (tail n) (- n 1)}
+})
+
+
+(fun {map f l} {
+    if (== l nil)
+        {nil}
+        {join (list (f (fst l))) (map f (tail l))}
+})
+
+
+(fun {filter cond l} {
+    if (== l nil)
+        {nil}
+        {join
+            (if (cond (fst l))
+                {head l}
+                {nil}
+            )
+            (filter cond (tail l))
+        }
+})
+
+
+(fun {foldl f z l} {
+    if (== l nil)
+        {z}
+        {foldl f (f z (fst l)) (tail l)}
+})
+
+
+(fun {sum l} {
+    foldl + 0 l
+})
+
+
+(fun {product l} {
+    foldl * 1 l
+})
+
+
+(fun {select : cs} {
+    if (== cs nil)
+        {error 'no selection'}
+        {
+            if (fst (fst cs))
+                {snd (fst cs)}
+                {unpack select (tail cs)}
+        }
+})
+
+
+(def {otherwise} true)
+
+
+(fun {case c : cs} {
+    if (== cs nil)
+        {error 'no case'}
+        {
+            if (== c (fst (fst cs)))
+                {snd (fst cs)}
+                {unpack case (join (list c) (tail cs))}
+        }
+})
