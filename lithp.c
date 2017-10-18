@@ -40,7 +40,7 @@ typedef struct lenv lenv;
 
 
 enum {
-    LVAL_ERR, LVAL_NUM, LVAL_SYM,
+    LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_STR,
     LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR,
 };
 
@@ -53,6 +53,8 @@ char* ltype_to_name(int type) {
             return "Number";
         case LVAL_SYM:
             return "Symbol";
+        case LVAL_STR:
+            return "String";
         case LVAL_FUN:
             return "Function";
         case LVAL_SEXPR:
@@ -79,9 +81,11 @@ typedef lval*(*lbuiltin)(lenv*, lval*);
 
 struct lval {
     int type;
+
     long num;
     char* err;
     char* sym;
+    char* str;
 
     /* function */
     lbuiltin builtin;  /* NULL if user defined */
@@ -125,6 +129,15 @@ lval* lval_sym(char* s) {
     v->type = LVAL_SYM;
     v->sym = malloc(strlen(s) + 1);
     strcpy(v->sym, s);
+    return v;
+}
+
+
+lval* lval_str(char* s) {
+    lval* v = malloc(sizeof(lval));
+    v->type = LVAL_STR;
+    v->str = malloc(strlen(s) + 1);
+    strcpy(v->str, s);
     return v;
 }
 
@@ -189,6 +202,10 @@ void lval_clean_up(lval* v) {
             free(v->err);
             break;
 
+        case LVAL_STR:
+            free(v->str);
+            break;
+
         case LVAL_SYM:
             free(v->sym);
             break;
@@ -204,6 +221,15 @@ void lval_clean_up(lval* v) {
 
 
 void lval_print(lval* v);
+
+
+void lval_print_str(lval* v) {
+    char* escaped = malloc(strlen(v->str) + 1);
+    strcpy(escaped, v->str);
+    escaped = mpcf_escape(escaped);
+    printf("'%s'", escaped);
+    free(escaped);
+}
 
 
 void lval_expr_print(lval* v, char open, char close) {
@@ -225,6 +251,8 @@ void lval_print(lval* v) {
             printf("Error: %s", v->err); break;
         case LVAL_SYM:
             printf("%s", v->sym); break;
+        case LVAL_STR:
+            lval_print_str(v); break;
         case LVAL_FUN:
             if (v->builtin) {
                 printf("<builtin>");
@@ -263,6 +291,9 @@ int lval_eq(lval* x, lval* y) {
 
         case LVAL_SYM:
             return (strcmp(x->sym, y->sym) == 0);
+
+        case LVAL_STR:
+            return (strcmp(x->str, y->str) == 0);
 
         case LVAL_FUN:
             if (x->builtin || y->builtin)
@@ -322,6 +353,11 @@ lval* lval_copy(lval* v) {
         case LVAL_SYM:
             x->sym = malloc(strlen(v->sym) + 1);
             strcpy(x->sym, v->sym);
+            break;
+
+        case LVAL_STR:
+            x->str = malloc(strlen(v->str) + 1);
+            strcpy(x->str, v->str);
             break;
 
         case LVAL_FUN:
@@ -846,8 +882,22 @@ lval* lval_read_num(mpc_ast_t* node) {
 }
 
 
+lval* lval_read_str(mpc_ast_t* node) {
+    /* unescape and remove quotation chars */
+    node->contents[strlen(node->contents) - 1] = '\0';
+    char* unescaped = malloc(strlen(node->contents+1) + 1);
+    strcpy(unescaped, node->contents+1);
+    unescaped = mpcf_unescape(unescaped);
+
+    lval* str = lval_str(unescaped);
+    free(unescaped);
+    return str;
+}
+
+
 lval* lval_read(mpc_ast_t* node) {
     if (strstr(node->tag, "number")) return lval_read_num(node);
+    if (strstr(node->tag, "string")) return lval_read_str(node);
     if (strstr(node->tag, "symbol")) return lval_sym(node->contents);
 
     lval* x = NULL;
@@ -870,6 +920,7 @@ lval* lval_read(mpc_ast_t* node) {
 
 int main(int argc, char** argv) {
     mpc_parser_t* Number = mpc_new("number");
+    mpc_parser_t* String = mpc_new("string");
     mpc_parser_t* Symbol = mpc_new("symbol");
     mpc_parser_t* Sexpr = mpc_new("sexpr");
     mpc_parser_t* Qexpr = mpc_new("qexpr");
@@ -879,16 +930,17 @@ int main(int argc, char** argv) {
     mpca_lang(MPCA_LANG_DEFAULT,
         "\
             number   : /-?[0-9]+/ ;\
+            string   : /'(\\\\.|[^'])*'/ ;\
             symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!:,&]+/ ;\
             sexpr    : '(' <expr>* ')' ;\
             qexpr    : '{' <expr>* '}' ;\
-            expr     : <number> | <symbol> | <sexpr> | <qexpr> ;\
+            expr     : <number> | <string> | <symbol> | <sexpr> | <qexpr> ;\
             program  : /^/ <expr>* /$/ ;\
         ",
-        Number, Symbol, Sexpr, Qexpr, Expr, Program
+        Number, String, Symbol, Sexpr, Qexpr, Expr, Program
     );
 
-    puts("Lithp 0.0.9");
+    puts("Lithp 0.0.10");
     puts("Preth Ctrl+c to Exit\n");
 
     lenv* e = lenv_new();
@@ -913,6 +965,6 @@ int main(int argc, char** argv) {
     }
 
     lenv_clean_up(e);
-    mpc_cleanup(6, Number, Symbol, Sexpr, Qexpr, Expr, Program);
+    mpc_cleanup(7, Number, String, Symbol, Sexpr, Qexpr, Expr, Program);
     return 0;
 }
