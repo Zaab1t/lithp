@@ -494,6 +494,10 @@ lval* builtin_lt(lenv* e, lval* v);
 lval* builtin_ge(lenv* e, lval* v);
 lval* builtin_le(lenv* e, lval* v);
 
+lval* builtin_import(lenv* e, lval* v);
+lval* builtin_print(lenv* e, lval* v);
+lval* builtin_error(lenv* e, lval* v);
+
 
 void lenv_add_builtins(lenv* e) {
     lenv_add_builtin(e, "list", builtin_list);
@@ -517,6 +521,10 @@ void lenv_add_builtins(lenv* e) {
     lenv_add_builtin(e, "<", builtin_lt);
     lenv_add_builtin(e, ">=", builtin_ge);
     lenv_add_builtin(e, "<=", builtin_le);
+
+    lenv_add_builtin(e, "import", builtin_import);
+    lenv_add_builtin(e, "print", builtin_print);
+    lenv_add_builtin(e, "error", builtin_error);
 }
 
 
@@ -636,6 +644,28 @@ lval* builtin_lambda(lenv* e, lval* a) {
     lval_clean_up(a);
 
     return lval_lambda(formals, body);
+}
+
+
+lval* builtin_print(lenv* e, lval* a) {
+    for (int i = 0; i < a->count; i++) {
+        lval_print(a->cell[i]);
+        putchar(' ');
+    }
+    putchar('\n');
+    lval_clean_up(a);
+    return lval_sexpr();
+}
+
+
+lval* builtin_error(lenv* e, lval* a) {
+    ASSERT_ARG_COUNT("error", a, 1);
+    ASSERT_TYPE("error", a, 0, LVAL_STR);
+
+    lval* error = lval_err(a->cell[0]->str);
+
+    lval_clean_up(a);
+    return error;
 }
 
 
@@ -942,7 +972,6 @@ lval* lval_read_str(mpc_ast_t* node) {
 lval* lval_read(mpc_ast_t* node) {
     if (strstr(node->tag, "number")) return lval_read_num(node);
     if (strstr(node->tag, "string")) return lval_read_str(node);
-
     if (strstr(node->tag, "symbol")) return lval_sym(node->contents);
 
     lval* x = NULL;
@@ -989,9 +1018,6 @@ int main(int argc, char** argv) {
         Number, String, Comment, Symbol, Sexpr, Qexpr, Expr, Program
     );
 
-    puts("Lithp 0.0.11");
-    puts("Preth Ctrl+c to Exit\n");
-
     lenv* e = lenv_new();
     lenv_add_builtins(e);
 
@@ -1004,7 +1030,10 @@ int main(int argc, char** argv) {
             lval_clean_up(x);
         }
     } else {  /* REPL */
-        while (1) {
+       puts("Lithp 0.0.12");
+       puts("Preth Ctrl+c to Exit\n");
+
+       while (1) {
             char* input = readline("lithp> ");
             add_history(input);
 
