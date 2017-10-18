@@ -624,6 +624,22 @@ lval* lval_call(lenv* e, lval* f, lval* a) {
         }
 
         lval* sym = lval_pop(f->formals, 0);
+
+        if (strcmp(sym->sym, ":") == 0) {
+            if (f->formals->count != 1) {
+                lval_clean_up(a);
+                return lval_err("Invalid function format. ':' should be"
+                        " followed by a single symbol.");
+            }
+
+            /* bind next formal to remaining arguments */
+            lval* nsym = lval_pop(f->formals, 0);
+            lenv_put(f->env, nsym, builtin_list(e, a));
+            lval_clean_up(sym);
+            lval_clean_up(nsym);
+            break;
+        }
+
         lval* val = lval_pop(a, 0);
 
         lenv_put(f->env, sym, val);
@@ -728,7 +744,7 @@ int main(int argc, char** argv) {
     mpca_lang(MPCA_LANG_DEFAULT,
         "\
             number   : /-?[0-9]+/ ;\
-            symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&]+/ ;\
+            symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!:,&]+/ ;\
             sexpr    : '(' <expr>* ')' ;\
             qexpr    : '{' <expr>* '}' ;\
             expr     : <number> | <symbol> | <sexpr> | <qexpr> ;\
@@ -737,7 +753,7 @@ int main(int argc, char** argv) {
         Number, Symbol, Sexpr, Qexpr, Expr, Program
     );
 
-    puts("Lithp 0.0.7");
+    puts("Lithp 0.0.8");
     puts("Preth Ctrl+c to Exit\n");
 
     lenv* e = lenv_new();
