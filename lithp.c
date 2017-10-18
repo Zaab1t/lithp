@@ -831,6 +831,50 @@ lval* lval_call(lenv* e, lval* f, lval* a) {
 }
 
 
+lval* lval_read(mpc_ast_t* t);
+
+
+mpc_parser_t* Number;
+mpc_parser_t* String;
+mpc_parser_t* Comment;
+mpc_parser_t* Symbol;
+mpc_parser_t* Sexpr;
+mpc_parser_t* Qexpr;
+mpc_parser_t* Expr;
+mpc_parser_t* Program;
+
+
+lval* builtin_import(lenv* e, lval* a) {
+    ASSERT_ARG_COUNT("import", a, 1);
+    ASSERT_TYPE("import", a, 0, LVAL_STR);
+
+    mpc_result_t r;
+    if (mpc_parse_contents(a->cell[0]->str, Program, &r)) {
+        lval* expr = lval_read(r.output);
+        mpc_ast_delete(r.output);
+
+        while (expr->count) {
+            lval* x = lval_eval(e, lval_pop(expr, 0));
+            if (x->type == LVAL_ERR)
+                lval_println(x);
+            lval_clean_up(x);
+        }
+
+        lval_clean_up(expr);
+        lval_clean_up(a);
+
+        return lval_sexpr();
+    }
+    char* error_msg = mpc_err_string(r.error);
+    mpc_err_delete(r.error);
+
+    lval* err = lval_err("Could not load Library %s", error_msg);
+    free(error_msg);
+    lval_clean_up(a);
+    return err;
+}
+
+
 lval* lval_take(lval* v, int i) {
     lval* x = lval_pop(v, i);
     lval_clean_up(v);
@@ -921,14 +965,14 @@ lval* lval_read(mpc_ast_t* node) {
 
 
 int main(int argc, char** argv) {
-    mpc_parser_t* Number = mpc_new("number");
-    mpc_parser_t* String = mpc_new("string");
-    mpc_parser_t* Comment = mpc_new("comment");
-    mpc_parser_t* Symbol = mpc_new("symbol");
-    mpc_parser_t* Sexpr = mpc_new("sexpr");
-    mpc_parser_t* Qexpr = mpc_new("qexpr");
-    mpc_parser_t* Expr = mpc_new("expr");
-    mpc_parser_t* Program = mpc_new("program");
+    Number = mpc_new("number");
+    String = mpc_new("string");
+    Comment = mpc_new("comment");
+    Symbol = mpc_new("symbol");
+    Sexpr = mpc_new("sexpr");
+    Qexpr = mpc_new("qexpr");
+    Expr = mpc_new("expr");
+    Program = mpc_new("program");
 
     mpca_lang(MPCA_LANG_DEFAULT,
         "\
@@ -951,22 +995,32 @@ int main(int argc, char** argv) {
     lenv* e = lenv_new();
     lenv_add_builtins(e);
 
-    while (1) {
-        char* input = readline("lithp> ");
-        add_history(input);
-
-        mpc_result_t r;
-        if (mpc_parse("<stdin>", input, Program, &r)) {
-            lval* x = lval_eval(e, lval_read(r.output));
-            lval_println(x);
+    if (argc >= 2) {
+        for (int i = 1; i < argc; i++) {
+            lval* args = lval_add(lval_sexpr(), lval_str(argv[i]));
+            lval* x = builtin_import(e, args);
+            if (x->type == LVAL_ERR)
+                lval_println(x);
             lval_clean_up(x);
-            mpc_ast_delete(r.output);
-        } else {
-            mpc_err_print(r.error);
-            mpc_err_delete(r.error);
         }
+    } else {  /* REPL */
+        while (1) {
+            char* input = readline("lithp> ");
+            add_history(input);
 
-        free(input);
+            mpc_result_t r;
+            if (mpc_parse("<stdin>", input, Program, &r)) {
+                lval* x = lval_eval(e, lval_read(r.output));
+                lval_println(x);
+                lval_clean_up(x);
+                mpc_ast_delete(r.output);
+            } else {
+                mpc_err_print(r.error);
+                mpc_err_delete(r.error);
+            }
+
+            free(input);
+        }
     }
 
     lenv_clean_up(e);
