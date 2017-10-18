@@ -898,6 +898,7 @@ lval* lval_read_str(mpc_ast_t* node) {
 lval* lval_read(mpc_ast_t* node) {
     if (strstr(node->tag, "number")) return lval_read_num(node);
     if (strstr(node->tag, "string")) return lval_read_str(node);
+
     if (strstr(node->tag, "symbol")) return lval_sym(node->contents);
 
     lval* x = NULL;
@@ -911,6 +912,7 @@ lval* lval_read(mpc_ast_t* node) {
         if (strcmp(node->children[i]->contents, "}") == 0) continue;
         if (strcmp(node->children[i]->contents, "{") == 0) continue;
         if (strcmp(node->children[i]->tag, "regex") == 0) continue;
+        if (strstr(node->children[i]->tag, "comment")) continue;
         x = lval_add(x, lval_read(node->children[i]));
     }
 
@@ -921,6 +923,7 @@ lval* lval_read(mpc_ast_t* node) {
 int main(int argc, char** argv) {
     mpc_parser_t* Number = mpc_new("number");
     mpc_parser_t* String = mpc_new("string");
+    mpc_parser_t* Comment = mpc_new("comment");
     mpc_parser_t* Symbol = mpc_new("symbol");
     mpc_parser_t* Sexpr = mpc_new("sexpr");
     mpc_parser_t* Qexpr = mpc_new("qexpr");
@@ -931,16 +934,18 @@ int main(int argc, char** argv) {
         "\
             number   : /-?[0-9]+/ ;\
             string   : /'(\\\\.|[^'])*'/ ;\
+            comment  : /;[^\\r\\n]*/ ;\
             symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!:,&]+/ ;\
             sexpr    : '(' <expr>* ')' ;\
             qexpr    : '{' <expr>* '}' ;\
-            expr     : <number> | <string> | <symbol> | <sexpr> | <qexpr> ;\
+            expr     : <number> | <string> | <comment> \
+                     | <symbol> | <sexpr> | <qexpr> ;\
             program  : /^/ <expr>* /$/ ;\
         ",
-        Number, String, Symbol, Sexpr, Qexpr, Expr, Program
+        Number, String, Comment, Symbol, Sexpr, Qexpr, Expr, Program
     );
 
-    puts("Lithp 0.0.10");
+    puts("Lithp 0.0.11");
     puts("Preth Ctrl+c to Exit\n");
 
     lenv* e = lenv_new();
@@ -965,6 +970,9 @@ int main(int argc, char** argv) {
     }
 
     lenv_clean_up(e);
-    mpc_cleanup(7, Number, String, Symbol, Sexpr, Qexpr, Expr, Program);
+    mpc_cleanup(8,
+            Number, String, Comment, Symbol,
+            Sexpr, Qexpr, Expr, Program
+    );
     return 0;
 }
