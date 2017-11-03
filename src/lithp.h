@@ -10,27 +10,6 @@ typedef struct lenv lenv;
 /* function pointer */
 typedef lval*(*lbuiltin)(lenv*, lval*);
 
-
-/* LVAL */
-struct lval {
-    int type;
-
-    long num;
-    char* err;
-    char* sym;
-    char* str;
-
-    /* function */
-    lbuiltin builtin;  /* NULL if user defined */
-    lenv* env;
-    lval* formals;
-    lval* body;
-
-    /* expression */
-    int count;
-    lval** cell;
-};
-
 enum {
     LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_STR,
     LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR,
@@ -63,14 +42,6 @@ char* ltype_to_name(int type);
 
 lval* lval_read(mpc_ast_t* t);
 
-
-/* LENV */
-struct lenv {
-    lenv* parent;  /* top parent is NULL */
-    int count;
-    char** syms;
-    lval** vals;
-};
 
 lenv* lenv_new(void);
 void lenv_put(lenv* e, lval* k, lval* v);
