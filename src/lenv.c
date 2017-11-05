@@ -71,13 +71,13 @@ lval *
 lenv_get (lenv *e, lval *k)
 {
     for (int i = 0; i < e->count; i++)
-        if (strcmp (e->syms[i], k->sym) == 0)
+        if (strcmp (e->syms[i], k->symbol) == 0)
             return lval_copy (e->vals[i]);
 
     if (e->parent)
         return lenv_get (e->parent, k);
 
-    return lval_err ("Unbound symbol '%s'!", k->sym);
+    return lval_err ("Unbound symbol '%s'!", k->symbol);
 }
 
 
@@ -87,7 +87,7 @@ lenv_put (lenv *e, lval *k, lval *v)
     /* update existing value */
     for (int i = 0; i < e->count; i++)
       {
-        if (strcmp (e->syms[i], k->sym) == 0)
+        if (strcmp (e->syms[i], k->symbol) == 0)
           {
             lval_clean_up (e->vals[i]);
             e->vals[i] = lval_copy (v);
@@ -99,8 +99,8 @@ lenv_put (lenv *e, lval *k, lval *v)
     e->syms = realloc (e->syms, sizeof (char*) * e->count);
     e->vals = realloc (e->vals, sizeof (lval*) * e->count);
 
-    e->syms[e->count-1] = malloc (strlen (k->sym) + 1);
-    strcpy (e->syms[e->count-1], k->sym);
+    e->syms[e->count-1] = malloc (strlen (k->symbol) + 1);
+    strcpy (e->syms[e->count-1], k->symbol);
     e->vals[e->count-1] = lval_copy (v);
 }
 

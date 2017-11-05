@@ -20,37 +20,6 @@
 #include "lithp.h"
 
 
-/*
- * Function:  ltype_to_name
- * ------------------------
- *   Return a string representation for a given type from the lval
- *   enumeration.
- */
-char *
-ltype_to_name (int type)
-{
-    switch (type)
-      {
-        case LVAL_ERR:
-            return "Error";
-        case LVAL_NUM:
-            return "Number";
-        case LVAL_SYM:
-            return "Symbol";
-        case LVAL_STR:
-            return "String";
-        case LVAL_FUN:
-            return "Function";
-        case LVAL_SEXPR:
-            return "S-Expression";
-        case LVAL_QEXPR:
-            return "Q-Expression";
-        default:
-            return "Not my type";
-    }
-}
-
-
 void
 lenv_add_builtin (lenv *e, char *symbol, lbuiltin func)
 {
@@ -131,9 +100,9 @@ lval_read (mpc_ast_t *node)
     if (strstr (node->tag, "symbol")) return lval_sym (node->contents);
 
     lval *x = NULL;
-    if (strcmp (node->tag, ">") == 0) x = lval_sexpr();
-    if (strstr (node->tag, "sexpr")) x = lval_sexpr();
-    if (strstr (node->tag, "qexpr")) x = lval_qexpr();
+    if (strcmp (node->tag, ">") == 0) x = lval_sexpr ();
+    if (strstr (node->tag, "sexpr")) x = lval_sexpr ();
+    if (strstr (node->tag, "qexpr")) x = lval_qexpr ();
 
     for (int i = 0; i < node->children_num; i++)
       {
@@ -204,7 +173,7 @@ main (int argc, char** argv)
             mpc_result_t r;
             if (mpc_parse ("<stdin>", input, Program, &r))
               {
-                lval *x = lval_eval (e, lval_read(r.output));
+                lval *x = lval_eval (e, lval_read (r.output));
                 lval_println (x);
                 lval_clean_up (x);
                 mpc_ast_delete (r.output);

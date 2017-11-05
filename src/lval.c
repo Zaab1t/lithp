@@ -24,9 +24,9 @@ struct lval
 {
     int type;  /* from the lval enum */
 
-    long num;
-    char *err;
-    char *sym;
+    long number;
+    char *error_msg;
+    char *symbol;
     char *str;
 
     /* function */
@@ -41,6 +41,11 @@ struct lval
 };
 
 
+
+/*****************************************************************************/
+/*                       CONSTRUCTORS AND DESTRUCTOR                         */
+/*****************************************************************************/
+
 lval *
 lval_err (char *fmt, ...)
 {
@@ -51,10 +56,10 @@ lval_err (char *fmt, ...)
     va_start (va, fmt);
 
     /* edit here for longer error messages */
-    v->err = malloc (512);
-    vsnprintf (v->err, 511, fmt, va);
+    v->error_msg = malloc (512);
+    vsnprintf (v->error_msg, 511, fmt, va);
 
-    v->err = realloc (v->err, strlen(v->err) + 1);
+    v->error_msg = realloc (v->error_msg, strlen (v->error_msg) + 1);
     va_end (va);
     return v;
 }
@@ -65,7 +70,7 @@ lval_num (long x)
 {
     lval *v = malloc (sizeof (lval));
     v->type = LVAL_NUM;
-    v->num = x;
+    v->number = x;
     return v;
 }
 
@@ -75,8 +80,8 @@ lval_sym (char *s)
 {
     lval *v = malloc (sizeof (lval));
     v->type = LVAL_SYM;
-    v->sym = malloc (strlen (s) + 1);
-    strcpy (v->sym, s);
+    v->symbol = malloc (strlen (s) + 1);
+    strcpy (v->symbol, s);
     return v;
 }
 
@@ -138,7 +143,7 @@ lval_qexpr (void)
 
 
 void
-lval_clean_up (lval *v)
+lval_cleanup (lval *v)
 {
     switch (v->type)
       {
@@ -149,13 +154,13 @@ lval_clean_up (lval *v)
             if (!v->builtin)
               {
                 lenv_clean_up (v->env);
-                lval_clean_up (v->formals);
-                lval_clean_up (v->body);
+                lval_cleanup (v->formals);
+                lval_cleanup (v->body);
             }
             break;
 
         case LVAL_ERR:
-            free (v->err);
+            free (v->error_msg);
             break;
 
         case LVAL_STR:
@@ -163,132 +168,23 @@ lval_clean_up (lval *v)
             break;
 
         case LVAL_SYM:
-            free (v->sym);
+            free (v->symbol);
             break;
 
         case LVAL_SEXPR:
         case LVAL_QEXPR:
             for (int i = 0; i < v->count; i++)
-                lval_clean_up (v->cell[i]);
+                lval_cleanup (v->cell[i]);
             free (v->cell);
     }
     free (v);
 }
 
 
-void
-lval_print_str (lval *v)
-{
-    char *escaped = malloc (strlen (v->str) + 1);
-    strcpy (escaped, v->str);
-    escaped = mpcf_escape (escaped);
-    printf ("'%s'", escaped);
-    free (escaped);
-}
 
-
-void
-lval_expr_print (lval *v, char open, char close)
-{
-    putchar (open);
-    for (int i = 0; i < v->count; i++)
-      {
-        lval_print (v->cell[i]);
-        if (i != (v->count-1))
-            putchar (' ');
-    }
-    putchar (close);
-}
-
-
-void lval_print (lval *v)
-{
-    switch (v->type)
-      {
-        case LVAL_NUM:
-            printf ("%li", v->num);
-            break;
-        case LVAL_ERR:
-            printf ("Error: %s", v->err);
-            break;
-        case LVAL_SYM:
-            printf ("%s", v->sym);
-            break;
-        case LVAL_STR:
-            lval_print_str (v);
-            break;
-        case LVAL_FUN:
-            if (v->builtin)
-              {
-                printf ("<builtin>");
-            }
-            else
-              {
-                printf ("(\\ ");
-                lval_print (v->formals);
-                putchar (' ');
-                lval_print (v->body);
-                putchar (')');
-            }
-            break;
-        case LVAL_SEXPR:
-            lval_expr_print (v, '(', ')');
-            break;
-        case LVAL_QEXPR:
-            lval_expr_print (v, '{', '}');
-            break;
-    }
-}
-
-
-void
-lval_println (lval *v)
-{
-    lval_print (v);
-    putchar ('\n');
-}
-
-
-int
-lval_eq (lval *x, lval *y)
-{
-    if (x->type != y->type)
-        return 0;
-
-    switch (x->type)
-      {
-        case LVAL_NUM:
-            return (x->num == y->num);
-
-        case LVAL_ERR:
-            return (strcmp (x->err, y->err) == 0);
-
-        case LVAL_SYM:
-            return (strcmp (x->sym, y->sym) == 0);
-
-        case LVAL_STR:
-            return (strcmp (x->str, y->str) == 0);
-
-        case LVAL_FUN:
-            if (x->builtin || y->builtin)
-                return (x->builtin == y->builtin);
-            return (lval_eq (x->formals, y->formals) &&
-                    lval_eq (x->body, y->body));
-
-        case LVAL_QEXPR:
-        case LVAL_SEXPR:
-            if (x->count != y->count)
-                return 0;
-            for (int i = 0; i < x->count; i++)
-                if (!lval_eq (x->cell[i], y->cell[i]))
-                    return 0;
-            return 1;
-
-    }
-
-    return 0;
-}
-
+/*****************************************************************************/
+/*                                UTILITIES                                  */
+/*****************************************************************************/
 
 lval *
 lval_copy (lval *v)
@@ -299,17 +195,17 @@ lval_copy (lval *v)
     switch (v->type)
       {
         case LVAL_ERR:
-            x->err = malloc (strlen (v->err) + 1);
-            strcpy (x->err, v->err);
+            x->error_msg = malloc (strlen (v->error_msg) + 1);
+            strcpy (x->error_msg, v->error_msg);
             break;
 
         case LVAL_NUM:
-            x->num = v->num;
+            x->number = v->number;
             break;
 
         case LVAL_SYM:
-            x->sym = malloc (strlen (v->sym) + 1);
-            strcpy (x->sym, v->sym);
+            x->symbol = malloc (strlen (v->symbol) + 1);
+            strcpy (x->symbol, v->symbol);
             break;
 
         case LVAL_STR:
@@ -341,6 +237,167 @@ lval_copy (lval *v)
 }
 
 
+/*
+ * Function:  ltype_to_name
+ * ------------------------
+ *   Return a string representation for a given type from the lval
+ *   enumeration.
+ */
+char *
+ltype_to_name (int type)
+{
+    switch (type)
+      {
+        case LVAL_ERR:
+            return "Error";
+        case LVAL_NUM:
+            return "Number";
+        case LVAL_SYM:
+            return "Symbol";
+        case LVAL_STR:
+            return "String";
+        case LVAL_FUN:
+            return "Function";
+        case LVAL_SEXPR:
+            return "S-Expression";
+        case LVAL_QEXPR:
+            return "Q-Expression";
+        default:
+            return "Not my type";
+    }
+}
+
+
+void
+lval_print_str (lval *v)
+{
+    char *escaped = malloc (strlen (v->str) + 1);
+    strcpy (escaped, v->str);
+    escaped = mpcf_escape (escaped);
+    printf ("'%s'", escaped);
+    free (escaped);
+}
+
+
+void
+lval_print_expr (lval *v, char open, char close)
+{
+    putchar (open);
+    for (int i = 0; i < v->count; i++)
+      {
+        lval_print (v->cell[i]);
+        if (i != (v->count-1))
+            putchar (' ');
+    }
+    putchar (close);
+}
+
+
+void lval_print (lval *v)
+{
+    switch (v->type)
+      {
+        case LVAL_NUM:
+            printf ("%li", v->number);
+            break;
+        case LVAL_ERR:
+            printf ("Error: %s", v->error_msg);
+            break;
+        case LVAL_SYM:
+            printf ("%s", v->symbol);
+            break;
+        case LVAL_STR:
+            lval_print_str (v);
+            break;
+        case LVAL_FUN:
+            if (v->builtin)
+              {
+                printf ("<builtin>");
+            }
+            else
+              {
+                printf ("(\\ ");
+                lval_print (v->formals);
+                putchar (' ');
+                lval_print (v->body);
+                putchar (')');
+            }
+            break;
+        case LVAL_SEXPR:
+            lval_print_expr (v, '(', ')');
+            break;
+        case LVAL_QEXPR:
+            lval_print_expr (v, '{', '}');
+            break;
+    }
+}
+
+
+void
+lval_println (lval *v)
+{
+    lval_print (v);
+    putchar ('\n');
+}
+
+
+
+/*****************************************************************************/
+/*                                 OPERATIONS                                */
+/*****************************************************************************/
+
+/*
+ * Function:  lval_equal
+ * ---------------------
+ *   Compare _any_ two `lval`s and return 1 if they can be considered
+ *   equal, otherwise 0.
+ */
+int
+lval_eq (lval *x, lval *y)
+{
+    if (x->type != y->type)
+        return 0;
+
+    switch (x->type)
+      {
+        case LVAL_NUM:
+            return (x->number == y->number);
+
+        case LVAL_ERR:
+            return (strcmp (x->error_msg, y->error_msg) == 0);
+
+        case LVAL_SYM:
+            return (strcmp (x->symbol, y->symbol) == 0);
+
+        case LVAL_STR:
+            return (strcmp (x->str, y->str) == 0);
+
+        case LVAL_FUN:
+            if (x->builtin || y->builtin)
+                return (x->builtin == y->builtin);
+            return (lval_eq (x->formals, y->formals) &&
+                    lval_eq (x->body, y->body));
+
+        case LVAL_QEXPR:
+        case LVAL_SEXPR:
+            if (x->count != y->count)
+                return 0;
+            for (int i = 0; i < x->count; i++)
+                if (!lval_eq (x->cell[i], y->cell[i]))
+                    return 0;
+            return 1;
+
+    }
+
+    return 0;
+}
+
+
+/*
+ * Function:  lval_pop
+ * -------------------
+ *   Remove and return the *i*'th element in `v->cell`.
+ */
 lval *
 lval_pop (lval *v, int i)
 {
@@ -353,6 +410,11 @@ lval_pop (lval *v, int i)
 }
 
 
+/*
+ * Function  lval_add
+ * ------------------
+ *   Append *x* to *v*.
+ */
 lval *
 lval_add (lval *v, lval *x)
 {
@@ -363,19 +425,32 @@ lval_add (lval *v, lval *x)
 }
 
 
+/*
+ * Function:  lval_join
+ * --------------------
+ *   Merge two `Q-expression`s into one.
+ */
 lval *
 lval_join (lval *x, lval *y)
 {
     while (y->count)
-        x = lval_add (x, lval_pop(y, 0));
+        x = lval_add (x, lval_pop (y, 0));
 
-    lval_clean_up (y);
+    lval_cleanup (y);
     return x;
 }
 
 
+/*
+ * Function: lval_call
+ * -------------------
+ *   Return the evaluation of a lisp function (`LVAL_FUN`).
+ *
+ *   If there are too few arguments, the function is just partially
+ *   evaluated.
+ */
 lval *
-lval_call (lenv* e, lval* f, lval* a)
+lval_call (lenv *e, lval *f, lval *a)
 {
     if (f->builtin)
         return f->builtin (e, a);
@@ -385,17 +460,17 @@ lval_call (lenv* e, lval* f, lval* a)
       {
         if (f->formals->count == 0)
           {
-            lval_clean_up (a);
+            lval_cleanup (a);
             return lval_err ("explicit error msg");
         }
 
         lval *sym = lval_pop (f->formals, 0);
 
-        if (strcmp (sym->sym, ":") == 0)
+        if (strcmp (sym->symbol, ":") == 0)
           {
             if (f->formals->count != 1)
               {
-                lval_clean_up (a);
+                lval_cleanup (a);
                 return lval_err ("Invalid function format. ':' should be"
                         " followed by a single symbol.");
             }
@@ -403,8 +478,8 @@ lval_call (lenv* e, lval* f, lval* a)
             /* bind next formal to remaining arguments */
             lval *nsym = lval_pop (f->formals, 0);
             lenv_put (f->env, nsym, builtin_list (e, a));
-            lval_clean_up (sym);
-            lval_clean_up (nsym);
+            lval_cleanup (sym);
+            lval_cleanup (nsym);
             break;
         }
 
@@ -412,11 +487,11 @@ lval_call (lenv* e, lval* f, lval* a)
 
         lenv_put (f->env, sym, val);
 
-        lval_clean_up (sym);
-        lval_clean_up (val);
+        lval_cleanup (sym);
+        lval_cleanup (val);
     }
 
-    lval_clean_up (a);  /* arg list has been bound */
+    lval_cleanup (a);  /* arg list has been bound */
 
     if (f->formals->count == 0)
       {
@@ -429,14 +504,24 @@ lval_call (lenv* e, lval* f, lval* a)
 }
 
 
+/*
+ * Function:  lval_take
+ * --------------------
+ *   Return the *i*th element of *v*, and throw *v* into orbit.
+ */
 lval *
-lval_take (lval* v, int i)
+lval_take (lval *v, int i)
 {
     lval *x = lval_pop (v, i);
-    lval_clean_up (v);
+    lval_cleanup (v);
     return x;
 }
 
+
+
+/*****************************************************************************/
+/*                                 EVALUATION                                */
+/*****************************************************************************/
 
 lval *
 lval_eval_sexpr (lenv *e, lval *v)
@@ -455,24 +540,29 @@ lval_eval_sexpr (lenv *e, lval *v)
     lval *f = lval_pop (v, 0);
     if (f->type != LVAL_FUN)
       {
-        lval_clean_up (f);
-        lval_clean_up (v);
+        lval_cleanup (f);
+        lval_cleanup (v);
         return lval_err ("First element is not a function!");
     }
 
     lval *result = lval_call (e, f, v);
-    lval_clean_up (f);
+    lval_cleanup (f);
     return result;
 }
 
 
+/*
+ * Function  lval_eval
+ * -------------------
+ *   Evaluate a lisp value.
+ */
 lval *
 lval_eval (lenv *e, lval *v)
 {
     if (v->type == LVAL_SYM)
       {
-        lval* x = lenv_get (e, v);
-        lval_clean_up (v);
+        lval *x = lenv_get (e, v);
+        lval_cleanup (v);
         return x;
     }
     if (v->type == LVAL_SEXPR) return lval_eval_sexpr (e, v);

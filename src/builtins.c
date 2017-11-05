@@ -4,7 +4,7 @@
  *   All the functions defined in C instead of lithp.
  *
  *   All builtins have the same signature, so they can be passed around
- *   arbitrarily: `lval * f(lenv *e, lval* a)`.
+ *   arbitrarily: `lval * f (lenv *e, lval *a)`.
  *
  */
 
@@ -14,28 +14,28 @@
 #include "lithp.h"
 
 
-#define ASSERT(args, cond, fmt, ...) \
+#define ASSERT (args, cond, fmt, ...) \
     if (!(cond)) { \
-        lval* err = lval_err(fmt, ##__VA_ARGS__); \
-        lval_clean_up(args); \
+        lval *err = lval_err (fmt, ##__VA_ARGS__); \
+        lval_clean_up (args); \
         return err; \
     }
 
-#define ASSERT_ARG_COUNT(func, args, num) \
-    ASSERT(args, args->count == num, \
+#define ASSERT_ARG_COUNT (func, args, num) \
+    ASSERT (args, args->count == num, \
             "'%s' expected %i arguments, but got %i.", \
             func, num, args->count \
     )
 
-#define ASSERT_TYPE(func, args, index, expect) \
-    ASSERT(args, args->cell[index]->type == expect, \
+#define ASSERT_TYPE (func, args, index, expect) \
+    ASSERT (args, args->cell[index]->type == expect, \
             "'%s' expected type %s at %i, but got %s.", \
-            func, ltype_to_name(expect), index, \
-            ltype_to_name(args->cell[index]->type) \
+            func, ltype_to_name (expect), index, \
+            ltype_to_name (args->cell[index]->type) \
     )
 
-#define ASSERT_NOT_EMPTY(func, args, index) \
-    ASSERT(args, args->cell[index]->count != 0, \
+#define ASSERT_NOT_EMPTY (func, args, index) \
+    ASSERT (args, args->cell[index]->count != 0, \
             "'%s' can't work on empty lists", func \
     )
 
@@ -54,7 +54,7 @@ builtin_eval (lenv *e, lval *a)
     ASSERT_ARG_COUNT ("eval", a, 1);
     ASSERT_TYPE ("eval", a, 0, LVAL_QEXPR);
 
-    lval* x = lval_take (a, 0);
+    lval *x = lval_take (a, 0);
     x->type = LVAL_SEXPR;
     return lval_eval (e, x);
 }
@@ -67,8 +67,8 @@ builtin_head (lenv *e, lval *a)
     ASSERT_TYPE ("head", a, 0, LVAL_QEXPR);
     ASSERT_NOT_EMPTY ("head", a, 0);
 
-    lval* v = lval_take (a, 0);
-    while (v->count > 1) lval_clean_up (lval_pop(v, 1));
+    lval *v = lval_take (a, 0);
+    while (v->count > 1) lval_clean_up (lval_pop (v, 1));
     return v;
 }
 
@@ -80,7 +80,7 @@ builtin_tail (lenv *e, lval *a)
     ASSERT_TYPE ("tail", a, 0, LVAL_QEXPR);
     ASSERT_NOT_EMPTY ("tail", a, 0);
 
-    lval* v = lval_take (a, 0);
+    lval *v = lval_take (a, 0);
     lval_clean_up (lval_pop (v, 0));
     return v;
 }
@@ -91,7 +91,7 @@ builtin_join (lenv *e, lval *a)
     for (int i = 0; i < a->count; i++)
         ASSERT_TYPE ("join", a, i, LVAL_QEXPR);
 
-    lval* x = lval_pop (a, 0);
+    lval *x = lval_pop (a, 0);
     while (a->count)
         x = lval_join (x, lval_pop (a, 0));
 
@@ -196,7 +196,7 @@ builtin_error (lenv *e, lval *a)
 
 
 lval *
-builtin_op (lenv* e, lval* a, char* op)
+builtin_op (lenv *e, lval *a, char *op)
 {
     /* Ensure that all args are numbers */
     for (int i = 0; i < a->count; i++)
@@ -209,25 +209,25 @@ builtin_op (lenv* e, lval* a, char* op)
     lval *x = lval_pop (a, 0);
 
     if ((strcmp (op, "-") == 0) && a->count == 0)
-        x->num = -x->num;
+        x->number = -x->number;
 
     while (a->count > 0) {
-        lval* y = lval_pop (a, 0);
+        lval *y = lval_pop (a, 0);
 
         if (strcmp (op, "+") == 0)
-            x->num += y->num;
+            x->number += y->number;
         if (strcmp (op, "-") == 0)
-            x->num -= y->num;
+            x->number -= y->number;
         if (strcmp (op, "*") == 0)
-            x->num *= y->num;
+            x->number *= y->number;
         if (strcmp (op, "/") == 0) {
-            if (y->num == 0) {
+            if (y->number == 0) {
                 lval_clean_up (x);
                 lval_clean_up (y);
                 x = lval_err ("Division by Zero!");
                 break;
             }
-            x->num /= y->num;
+            x->number /= y->number;
         }
 
         lval_clean_up (y);
@@ -253,7 +253,7 @@ builtin_sub (lenv *e, lval *a)
 
 
 lval *
-builtin_mul(lenv *e, lval *a)
+builtin_mul (lenv *e, lval *a)
 {
     return builtin_op (e, a, "*");
 }
@@ -278,12 +278,12 @@ builtin_if (lenv *e, lval *a)
     a->cell[1]->type = LVAL_SEXPR;
     a->cell[2]->type = LVAL_SEXPR;
 
-    if (a->cell[0]->num)
+    if (a->cell[0]->number)
       {
-        x = lval_eval (e, lval_pop(a, 1));
+        x = lval_eval (e, lval_pop (a, 1));
     } else
       {
-        x = lval_eval (e, lval_pop(a, 2));
+        x = lval_eval (e, lval_pop (a, 2));
     }
 
     lval_clean_up (a);
@@ -301,19 +301,19 @@ builtin_ord (lenv *e, lval *a, char *op)
     int r;
     if (strcmp (op, ">") == 0)
       {
-        r = (a->cell[0]->num > a->cell[1]->num);
+        r = (a->cell[0]->number > a->cell[1]->number);
     }
-    else if (strcmp(op, "<") == 0)
+    else if (strcmp (op, "<") == 0)
       {
-        r = (a->cell[0]->num < a->cell[1]->num);
+        r = (a->cell[0]->number < a->cell[1]->number);
     }
-    else if (strcmp(op, ">=") == 0)
+    else if (strcmp (op, ">=") == 0)
       {
-        r = (a->cell[0]->num >= a->cell[1]->num);
+        r = (a->cell[0]->number >= a->cell[1]->number);
     }
-    else  /* (strcmp(op, "<=") == 0) */
+    else  /* (strcmp (op, "<=") == 0) */
       {
-        r = (a->cell[0]->num <= a->cell[1]->num);
+        r = (a->cell[0]->number <= a->cell[1]->number);
     }
 
     lval_clean_up (a);
@@ -326,7 +326,7 @@ builtin_cmp (lenv *e, lval *a, char *op)
 {
     ASSERT_ARG_COUNT (op, a, 2);
 
-    int r = lval_eq(a->cell[0], a->cell[1]);
+    int r = lval_eq (a->cell[0], a->cell[1]);
     if (strcmp (op, "!=") == 0)
         r = !r;
 
@@ -364,7 +364,7 @@ builtin_le (lenv *e, lval *a)
 
 
 lval *
-builtin_eq(lenv *e, lval *a)
+builtin_eq (lenv *e, lval *a)
 {
     return builtin_cmp (e, a, "==");
 }
