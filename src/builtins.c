@@ -14,27 +14,27 @@
 #include "lithp.h"
 
 
-#define ASSERT (args, cond, fmt, ...) \
+#define ASSERT(args, cond, fmt, ...) \
     if (!(cond)) { \
         lval *err = lval_err (fmt, ##__VA_ARGS__); \
         lval_clean_up (args); \
         return err; \
     }
 
-#define ASSERT_ARG_COUNT (func, args, num) \
+#define ASSERT_ARG_COUNT(func, args, num) \
     ASSERT (args, args->count == num, \
             "'%s' expected %i arguments, but got %i.", \
             func, num, args->count \
     )
 
-#define ASSERT_TYPE (func, args, index, expect) \
+#define ASSERT_TYPE(func, args, index, expect) \
     ASSERT (args, args->cell[index]->type == expect, \
             "'%s' expected type %s at %i, but got %s.", \
             func, ltype_to_name (expect), index, \
             ltype_to_name (args->cell[index]->type) \
     )
 
-#define ASSERT_NOT_EMPTY (func, args, index) \
+#define ASSERT_NOT_EMPTY(func, args, index) \
     ASSERT (args, args->cell[index]->count != 0, \
             "'%s' can't work on empty lists", func \
     )
