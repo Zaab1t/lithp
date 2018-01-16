@@ -1,7 +1,7 @@
 CC ?= cc
 CFLAGS ?= -std=c99 -Wall
 
-TARGET_EXEC ?= lithp.out
+TARGET_EXEC ?= lithp
 SRC_DIR ?= ./src
 INC_DIR ?= ./include
 
