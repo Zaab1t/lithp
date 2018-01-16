@@ -13,13 +13,6 @@
 #include "lithp.h"
 
 
-struct lenv
-{
-    lenv *parent;  /* top parent is NULL */
-    int count;
-    char **syms;
-    lval **vals;
-};
 
 
 lenv *
@@ -59,7 +52,7 @@ lenv_clean_up (lenv *e)
     for (int i = 0; i < e->count; i++)
       {
         free (e->syms[i]);
-        lval_clean_up (e->vals[i]);
+        lval_cleanup (e->vals[i]);
     }
     free (e->syms);
     free (e->vals);
@@ -89,7 +82,7 @@ lenv_put (lenv *e, lval *k, lval *v)
       {
         if (strcmp (e->syms[i], k->symbol) == 0)
           {
-            lval_clean_up (e->vals[i]);
+            lval_cleanup (e->vals[i]);
             e->vals[i] = lval_copy (v);
             return;
         }

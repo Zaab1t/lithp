@@ -17,7 +17,7 @@
 #define ASSERT(args, cond, fmt, ...) \
     if (!(cond)) { \
         lval *err = lval_err (fmt, ##__VA_ARGS__); \
-        lval_clean_up (args); \
+        lval_cleanup (args); \
         return err; \
     }
 
@@ -68,7 +68,7 @@ builtin_head (lenv *e, lval *a)
     ASSERT_NOT_EMPTY ("head", a, 0);
 
     lval *v = lval_take (a, 0);
-    while (v->count > 1) lval_clean_up (lval_pop (v, 1));
+    while (v->count > 1) lval_cleanup (lval_pop (v, 1));
     return v;
 }
 
@@ -81,7 +81,7 @@ builtin_tail (lenv *e, lval *a)
     ASSERT_NOT_EMPTY ("tail", a, 0);
 
     lval *v = lval_take (a, 0);
-    lval_clean_up (lval_pop (v, 0));
+    lval_cleanup (lval_pop (v, 0));
     return v;
 }
 
@@ -95,7 +95,7 @@ builtin_join (lenv *e, lval *a)
     while (a->count)
         x = lval_join (x, lval_pop (a, 0));
 
-    lval_clean_up (a);
+    lval_cleanup (a);
     return x;
 }
 
@@ -126,7 +126,7 @@ builtin_var (lenv *e, lval *a, char *func)
         }
     }
 
-    lval_clean_up (a);
+    lval_cleanup (a);
     return lval_sexpr ();
 }
 
@@ -162,7 +162,7 @@ builtin_lambda (lenv *e, lval *a)
 
     lval *formals = lval_pop (a, 0);
     lval *body = lval_pop (a, 0);
-    lval_clean_up (a);
+    lval_cleanup (a);
 
     return lval_lambda (formals, body);
 }
@@ -177,7 +177,7 @@ builtin_print (lenv *e, lval *a)
         putchar (' ');
     }
     putchar ('\n');
-    lval_clean_up (a);
+    lval_cleanup (a);
     return lval_sexpr ();
 }
 
@@ -190,7 +190,7 @@ builtin_error (lenv *e, lval *a)
 
     lval *error = lval_err (a->cell[0]->str);
 
-    lval_clean_up (a);
+    lval_cleanup (a);
     return error;
 }
 
@@ -202,7 +202,7 @@ builtin_op (lenv *e, lval *a, char *op)
     for (int i = 0; i < a->count; i++)
         if (a->cell[i]->type != LVAL_NUM)
           {
-            lval_clean_up (a);
+            lval_cleanup (a);
             return lval_err ("Can only operate on numbers!");
         }
 
@@ -222,18 +222,18 @@ builtin_op (lenv *e, lval *a, char *op)
             x->number *= y->number;
         if (strcmp (op, "/") == 0) {
             if (y->number == 0) {
-                lval_clean_up (x);
-                lval_clean_up (y);
+                lval_cleanup (x);
+                lval_cleanup (y);
                 x = lval_err ("Division by Zero!");
                 break;
             }
             x->number /= y->number;
         }
 
-        lval_clean_up (y);
+        lval_cleanup (y);
     }
 
-    lval_clean_up (a);
+    lval_cleanup (a);
     return x;
 }
 
@@ -286,7 +286,7 @@ builtin_if (lenv *e, lval *a)
         x = lval_eval (e, lval_pop (a, 2));
     }
 
-    lval_clean_up (a);
+    lval_cleanup (a);
     return x;
 }
 
@@ -316,7 +316,7 @@ builtin_ord (lenv *e, lval *a, char *op)
         r = (a->cell[0]->number <= a->cell[1]->number);
     }
 
-    lval_clean_up (a);
+    lval_cleanup (a);
     return lval_num (r);
 }
 
@@ -330,7 +330,7 @@ builtin_cmp (lenv *e, lval *a, char *op)
     if (strcmp (op, "!=") == 0)
         r = !r;
 
-    lval_clean_up (a);
+    lval_cleanup (a);
     return lval_num (r);
 }
 
@@ -392,11 +392,11 @@ builtin_import (lenv *e, lval *a)
             lval *x = lval_eval (e, lval_pop (expr, 0));
             if (x->type == LVAL_ERR)
                 lval_println (x);
-            lval_clean_up (x);
+            lval_cleanup (x);
         }
 
-        lval_clean_up (expr);
-        lval_clean_up (a);
+        lval_cleanup (expr);
+        lval_cleanup (a);
 
         return lval_sexpr ();
     }
@@ -405,6 +405,6 @@ builtin_import (lenv *e, lval *a)
 
     lval *err = lval_err ("Could not load Library %s", error_msg);
     free (error_msg);
-    lval_clean_up (a);
+    lval_cleanup (a);
     return err;
 }

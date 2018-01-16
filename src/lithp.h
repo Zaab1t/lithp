@@ -1,14 +1,50 @@
 #include "mpc.h"
 
 
+struct lenv;
 struct lval;
 typedef struct lval lval;
-struct lenv;
 typedef struct lenv lenv;
-
 
 /* function pointer */
 typedef lval*(*lbuiltin)(lenv*, lval*);
+
+
+/* Type:  lval
+ * -----------
+ *   This is the most important type in the project. It is used to
+ *   represent any value in lithp and is essentially used to
+ *   achieve duck typing.
+*/
+struct lval
+{
+    int type;  /* from the lval enum */
+
+    long number;
+    char *error_msg;
+    char *symbol;
+    char *str;
+
+    /* function */
+    lbuiltin builtin;  /* NULL if user defined */
+    lenv *env;
+    lval *formals;
+    lval *body;
+
+    /* expression */
+    int count;
+    lval **cell;
+};
+
+
+struct lenv
+{
+    lenv *parent;  /* top parent is NULL */
+    int count;
+    char **syms;
+    lval **vals;
+};
+
 
 enum {
     LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_STR,
@@ -24,7 +60,7 @@ lval* lval_lambda(lval* formals, lval* body);
 lval* lval_sexpr(void);
 lval* lval_qexpr(void);
 
-void lval_clean_up(lval* v);
+void lval_cleanup(lval* v);
 int lval_eq(lval* x, lval* y);
 lval* lval_copy(lval* v);
 lval* lval_pop(lval* v, int i);

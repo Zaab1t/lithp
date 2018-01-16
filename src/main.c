@@ -26,8 +26,8 @@ lenv_add_builtin (lenv *e, char *symbol, lbuiltin func)
     lval *key = lval_sym (symbol);
     lval *value = lval_fun (func);
     lenv_put (e, key, value);
-    lval_clean_up (key);
-    lval_clean_up (value);
+    lval_cleanup (key);
+    lval_cleanup (value);
 }
 
 
@@ -157,7 +157,7 @@ main (int argc, char** argv)
             lval *x = builtin_import (e, args);
             if (x->type == LVAL_ERR)
                 lval_println (x);
-            lval_clean_up (x);
+            lval_cleanup (x);
         }
     }
     else  /* REPL */
@@ -175,7 +175,7 @@ main (int argc, char** argv)
               {
                 lval *x = lval_eval (e, lval_read (r.output));
                 lval_println (x);
-                lval_clean_up (x);
+                lval_cleanup (x);
                 mpc_ast_delete (r.output);
             }
             else

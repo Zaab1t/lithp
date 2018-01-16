@@ -14,34 +14,6 @@
 #include "lithp.h"
 
 
-/* Type:  lval
- * -----------
- *   This is the most important type in the project. It is used to
- *   represent any value in lithp and is essentially used to
- *   achieve duck typing.
-*/
-struct lval
-{
-    int type;  /* from the lval enum */
-
-    long number;
-    char *error_msg;
-    char *symbol;
-    char *str;
-
-    /* function */
-    lbuiltin builtin;  /* NULL if user defined */
-    lenv *env;
-    lval *formals;
-    lval *body;
-
-    /* expression */
-    int count;
-    lval **cell;
-};
-
-
-
 /*****************************************************************************/
 /*                       CONSTRUCTORS AND DESTRUCTOR                         */
 /*****************************************************************************/
