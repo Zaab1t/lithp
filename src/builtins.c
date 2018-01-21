@@ -377,6 +377,10 @@ builtin_ne (lenv *e, lval *a)
 }
 
 
+/* Function:  import
+ * -----------------
+ *   Read the lval string *a* as a file and execute the code in that file.
+*/
 lval *
 builtin_import (lenv *e, lval *a)
 {
@@ -385,6 +389,7 @@ builtin_import (lenv *e, lval *a)
 
     mpc_result_t r;
     if (mpc_parse_contents (a->cell[0]->str, Program, &r)) {
+        /* read file content */
         lval *expr = lval_read (r.output);
         mpc_ast_delete (r.output);
 
