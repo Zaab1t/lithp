@@ -164,9 +164,7 @@ main (int argc, char** argv)
       {
         puts ("Lithp 0.0.13");
         puts ("Preth Ctrl+c to Exit\n");
-
-        while (1)
-          {
+        for (;;) {
             char *input = readline ("lithp> ");
             add_history (input);
 
