@@ -122,14 +122,14 @@ lval_read (mpc_ast_t *node)
 int
 main (int argc, char** argv)
 {
-    mpc_parser_t *Number = mpc_new ("number");
-    mpc_parser_t *String = mpc_new ("string");
-    mpc_parser_t *Comment = mpc_new ("comment");
-    mpc_parser_t *Symbol = mpc_new ("symbol");
-    mpc_parser_t *Sexpr = mpc_new ("sexpr");
-    mpc_parser_t *Qexpr = mpc_new ("qexpr");
-    mpc_parser_t *Expr = mpc_new ("expr");
-    mpc_parser_t *Program = mpc_new ("program");
+    Number = mpc_new ("number");
+    String = mpc_new ("string");
+    Comment = mpc_new ("comment");
+    Symbol = mpc_new ("symbol");
+    Sexpr = mpc_new ("sexpr");
+    Qexpr = mpc_new ("qexpr");
+    Expr = mpc_new ("expr");
+    Program = mpc_new ("program");
 
     mpca_lang (MPCA_LANG_DEFAULT,
         "\

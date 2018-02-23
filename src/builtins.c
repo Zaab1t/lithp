@@ -389,9 +389,7 @@ builtin_import (lenv *e, lval *a)
 
     mpc_result_t r;
     if (mpc_parse_contents (a->cell[0]->str, Program, &r)) {
-        /* read file content */
         lval *expr = lval_read (r.output);
-        mpc_ast_delete (r.output);
 
         while (expr->count) {
             lval *x = lval_eval (e, lval_pop (expr, 0));
@@ -402,6 +400,7 @@ builtin_import (lenv *e, lval *a)
 
         lval_cleanup (expr);
         lval_cleanup (a);
+        mpc_ast_delete (r.output);
 
         return lval_sexpr ();
     }
