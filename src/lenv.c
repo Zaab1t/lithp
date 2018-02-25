@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "lithp.h"
 
@@ -23,7 +24,7 @@ lenv_copy (lenv *e) {
     n->syms = malloc (sizeof (char*) * n->count);
     n->vals = malloc (sizeof (lval*) * n->count);
 
-    for (int i = 0; i < n->count; i++)
+    for (uint64_t i = 0; i < n->count; i++)
       {
         n->syms[i] = malloc (strlen (e->syms[i]) + 1);
         strcpy (n->syms[i], e->syms[i]);
@@ -49,7 +50,7 @@ lenv_new (void)
 void
 lenv_clean_up (lenv *e)
 {
-    for (int i = 0; i < e->count; i++)
+    for (uint64_t i = 0; i < e->count; i++)
       {
         free (e->syms[i]);
         lval_cleanup (e->vals[i]);
@@ -63,7 +64,7 @@ lenv_clean_up (lenv *e)
 lval *
 lenv_get (lenv *e, lval *k)
 {
-    for (int i = 0; i < e->count; i++)
+    for (uint64_t i = 0; i < e->count; i++)
         if (strcmp (e->syms[i], k->symbol) == 0)
             return lval_copy (e->vals[i]);
 
@@ -78,7 +79,7 @@ void
 lenv_put (lenv *e, lval *k, lval *v)
 {
     /* update existing value */
-    for (int i = 0; i < e->count; i++)
+    for (uint64_t i = 0; i < e->count; i++)
       {
         if (strcmp (e->syms[i], k->symbol) == 0)
           {

@@ -9,6 +9,8 @@
  */
 
 
+#include <stdint.h>
+
 #include "mpc.h"
 
 #include "lithp.h"
@@ -85,10 +87,11 @@ builtin_tail (lenv *e, lval *a)
     return v;
 }
 
+
 lval *
 builtin_join (lenv *e, lval *a)
 {
-    for (int i = 0; i < a->count; i++)
+    for (uint64_t i = 0; i < a->count; i++)
         ASSERT_TYPE ("join", a, i, LVAL_QEXPR);
 
     lval *x = lval_pop (a, 0);
@@ -107,14 +110,14 @@ builtin_var (lenv *e, lval *a, char *func)
 
     lval *syms = a->cell[0];
     /* ensure valid symbols */
-    for (int i = 0; i < syms->count; i++)
+    for (uint16_t i = 0; i < syms->count; i++)
         ASSERT (a, syms->cell[i]->type == LVAL_SYM,
                 "'%s' cannot define non-symbol", func);
 
     ASSERT (a, (syms->count == a->count-1),
             "'%s' can only define same number of values and symbols", func);
 
-    for (int i = 0; i < syms->count; i++)
+    for (uint16_t i = 0; i < syms->count; i++)
     {
         if (strcmp (func, "def") == 0)
           {
@@ -153,7 +156,7 @@ builtin_lambda (lenv *e, lval *a)
     ASSERT_TYPE ("\\", a, 1, LVAL_QEXPR);
 
     /* Verify that first Q-Expression only contains symbols */
-    for (int i = 0; i < a->cell[0]->count; i++)
+    for (uint64_t i = 0; i < a->cell[0]->count; i++)
         ASSERT (a, (a->cell[0]->cell[i]->type == LVAL_SYM),
                 "Cannot define non-symbol. Got %s, expected %s.",
                 ltype_to_name (a->cell[0]->cell[i]->type),
@@ -171,7 +174,7 @@ builtin_lambda (lenv *e, lval *a)
 lval *
 builtin_print (lenv *e, lval *a)
 {
-    for (int i = 0; i < a->count; i++)
+    for (uint64_t i = 0; i < a->count; i++)
       {
         lval_print (a->cell[i]);
         putchar (' ');
@@ -199,7 +202,7 @@ lval *
 builtin_op (lenv *e, lval *a, char *op)
 {
     /* Ensure that all args are numbers */
-    for (int i = 0; i < a->count; i++)
+    for (uint64_t i = 0; i < a->count; i++)
         if (a->cell[i]->type != LVAL_NUM)
           {
             lval_cleanup (a);
@@ -298,7 +301,7 @@ builtin_ord (lenv *e, lval *a, char *op)
     ASSERT_TYPE (op, a, 0, LVAL_NUM);
     ASSERT_TYPE (op, a, 1, LVAL_NUM);
 
-    int r;
+    int r;  // bool?
     if (strcmp (op, ">") == 0)
       {
         r = (a->cell[0]->number > a->cell[1]->number);

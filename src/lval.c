@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "mpc.h"
 
@@ -38,7 +39,7 @@ lval_err (char *fmt, ...)
 
 
 lval *
-lval_num (long x)
+lval_num (intmax_t x)
 {
     lval *v = malloc (sizeof (lval));
     v->type = LVAL_NUM;
@@ -145,7 +146,7 @@ lval_cleanup (lval *v)
 
         case LVAL_SEXPR:
         case LVAL_QEXPR:
-            for (int i = 0; i < v->count; i++)
+            for (uint64_t i = 0; i < v->count; i++)
                 lval_cleanup (v->cell[i]);
             free (v->cell);
     }
@@ -200,7 +201,7 @@ lval_copy (lval *v)
         case LVAL_QEXPR:
             x->count = v->count;
             x->cell = malloc (sizeof (lval*) * x->count);
-            for (int i = 0; i < x->count; i++)
+            for (uint64_t i = 0; i < x->count; i++)
                 x->cell[i] = lval_copy (v->cell[i]);
             break;
     }
@@ -255,7 +256,7 @@ void
 lval_print_expr (lval *v, char open, char close)
 {
     putchar (open);
-    for (int i = 0; i < v->count; i++)
+    for (uint64_t i = 0; i < v->count; i++)
       {
         lval_print (v->cell[i]);
         if (i != (v->count-1))
@@ -323,6 +324,8 @@ lval_println (lval *v)
  * ---------------------
  *   Compare _any_ two `lval`s and return 1 if they can be considered
  *   equal, otherwise 0.
+ *
+ *   TODO: return bool?
  */
 int
 lval_eq (lval *x, lval *y)
@@ -354,7 +357,7 @@ lval_eq (lval *x, lval *y)
         case LVAL_SEXPR:
             if (x->count != y->count)
                 return 0;
-            for (int i = 0; i < x->count; i++)
+            for (uint64_t i = 0; i < x->count; i++)
                 if (!lval_eq (x->cell[i], y->cell[i]))
                     return 0;
             return 1;
@@ -371,7 +374,7 @@ lval_eq (lval *x, lval *y)
  *   Remove and return the *i*'th element in `v->cell`.
  */
 lval *
-lval_pop (lval *v, int i)
+lval_pop (lval *v, uint64_t i)
 {
     lval *x = v->cell[i];
     memmove (&v->cell[i], &v->cell[i+1],
@@ -482,7 +485,7 @@ lval_call (lenv *e, lval *f, lval *a)
  *   Return the *i*th element of *v*, and throw *v* into orbit.
  */
 lval *
-lval_take (lval *v, int i)
+lval_take (lval *v, uint64_t i)
 {
     lval *x = lval_pop (v, i);
     lval_cleanup (v);
@@ -500,10 +503,10 @@ lval_eval_sexpr (lenv *e, lval *v)
 {
     if (v->count == 0) return v;  /* empty expression */
 
-    for (int i = 0; i < v->count; i++)
+    for (uint64_t i = 0; i < v->count; i++)
         v->cell[i] = lval_eval (e, v->cell[i]);
 
-    for (int i = 0; i < v->count; i++)
+    for (uint64_t i = 0; i < v->count; i++)
         if (v->cell[i]->type == LVAL_ERR)
             return lval_take (v, i);
 

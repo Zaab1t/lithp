@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <editline/readline.h>
 #include <editline/history.h>
@@ -151,7 +152,7 @@ main (int argc, char** argv)
 
     if (argc >= 2)
       {
-        for (int i = 1; i < argc; i++)
+        for (uint8_t i = 1; i < argc; i++)
           {
             lval *args = lval_add (lval_sexpr (), lval_str (argv[i]));
             lval *x = builtin_import (e, args);

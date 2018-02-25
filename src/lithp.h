@@ -13,14 +13,14 @@ typedef lval*(*lbuiltin)(lenv*, lval*);
 /* Type:  lval
  * -----------
  *   This is the most important type in the project. It is used to
- *   represent any value in lithp and is essentially used to
- *   achieve duck typing.
+ *   represent any value in lithp and is essentially a poor mans
+ *   duck typing.
 */
 struct lval
 {
     int type;  /* from the lval enum */
 
-    long number;
+    intmax_t number;
     char *error_msg;
     char *symbol;
     char *str;
@@ -32,7 +32,7 @@ struct lval
     lval *body;
 
     /* expression */
-    int count;
+    uint64_t count;
     lval **cell;
 };
 
@@ -40,7 +40,7 @@ struct lval
 struct lenv
 {
     lenv *parent;  /* top parent is NULL */
-    int count;
+    uint64_t count;
     char **syms;
     lval **vals;
 };
@@ -53,7 +53,7 @@ enum {
 
 
 lval *lval_err(char *fmt, ...);
-lval *lval_num(long x);
+lval *lval_num(intmax_t x);
 lval *lval_sym(char *s);
 lval *lval_str(char *s);
 lval *lval_fun(lbuiltin func);
@@ -64,11 +64,11 @@ lval *lval_qexpr(void);
 void lval_cleanup(lval *v);
 int lval_eq(lval *x, lval *y);
 lval *lval_copy(lval *v);
-lval *lval_pop(lval *v, int i);
+lval *lval_pop(lval *v, uint64_t i);
 lval *lval_add(lval *v, lval *x);
 lval *lval_join(lval *x, lval *y);
 lval *lval_call(lenv *e, lval *f, lval *a);
-lval *lval_take(lval *v, int i);
+lval *lval_take(lval *v, uint64_t i);
 lval *lval_eval(lenv *e, lval *v);
 lval *lval_eval_sexpr(lenv *e, lval *v);
 
