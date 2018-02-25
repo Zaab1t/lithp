@@ -230,7 +230,7 @@ lval_print_str(lval *v) {
     char *escaped = malloc(strlen(v->str) + 1);
     strcpy(escaped, v->str);
     escaped = mpcf_escape(escaped);
-    printf("'%s'", escaped);
+    printf("%s", escaped);
     free(escaped);
 }
 
