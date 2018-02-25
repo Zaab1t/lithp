@@ -1,13 +1,22 @@
 #include "mpc.h"
 
 
-struct lenv;
-struct lval;
 typedef struct lval lval;
 typedef struct lenv lenv;
 
 /* function pointer */
 typedef lval *(*lbuiltin)(lenv *, lval *);
+
+
+typedef enum {
+    LVAL_ERR,
+    LVAL_NUM,
+    LVAL_SYM,
+    LVAL_STR,
+    LVAL_FUN,
+    LVAL_SEXPR,
+    LVAL_QEXPR,
+} lval_type;
 
 
 /* Type:  lval
@@ -17,7 +26,7 @@ typedef lval *(*lbuiltin)(lenv *, lval *);
  *   duck typing.
 */
 struct lval {
-    int type; /* from the lval enum */
+    lval_type type;
 
     intmax_t number;
     char *error_msg;
@@ -45,17 +54,7 @@ struct lenv {
 };
 
 
-enum {
-    LVAL_ERR,
-    LVAL_NUM,
-    LVAL_SYM,
-    LVAL_STR,
-    LVAL_FUN,
-    LVAL_SEXPR,
-    LVAL_QEXPR,
-};
-
-
+/* LVAL */
 lval *
 lval_err(char *fmt, ...);
 lval *
@@ -107,6 +106,7 @@ lval *
 lval_read(mpc_ast_t *t);
 
 
+/* LENV */
 lenv *
 lenv_new(void);
 void
