@@ -4,6 +4,9 @@ an incomplete, fairly useless lisp dialect
 for now its like most other dialects except slow, few features and quoted
 expressions are written like `{}` instead of `'()`.
 
+Quoted lists are referred to as q-expresisons and normal lists are
+s-expressions ofc.
+
 
 ## Getting started
 You need editline, on Debian based distros that is:
@@ -27,12 +30,13 @@ To run lithp:
 * wrap c syscalls
 * a cool program in lithp
 * namespaces
-* docstrings for better repl experience
+* docstrings for non-builtins too
 * write stdlib -- networking would be cool
 * automatically import some core of stdlib
 * arbitrary sized integers
 * float data type
 * macros
+* tests?
 * tail call optimization
 * garbage collection
 * implement lenv with a mapping/dictionary
