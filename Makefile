@@ -10,3 +10,7 @@ DEPS := $(shell find $(INC_DIR) -name *.c)
 
 build:
 	$(CC) $(CFLAGS) $(SRCS) -O0 -g -I $(INC_DIR) $(DEPS) -ledit -lm -o $(TARGET_EXEC)
+
+
+format:
+	clang-format -i -style=file $(SRCS) src/lithp.h
