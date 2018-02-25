@@ -28,14 +28,18 @@ typedef enum {
 struct lval {
     lval_type type;
 
+    /* could we use a union here? */
     intmax_t number;
     char *error_msg;
     char *symbol;
     char *str;
 
-    /* function */
+    /* builtin function */
     lbuiltin builtin; /* NULL if user defined */
     char *docstring;
+
+    /* user function */
+    // TODO: should get docstrings too!
     lenv *env;
     lval *formals;
     lval *body;
