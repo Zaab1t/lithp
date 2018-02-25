@@ -67,10 +67,12 @@ lval_str(char *s) {
 
 
 lval *
-lval_fun(lbuiltin func) {
+lval_fun(lbuiltin func, char *doc) {
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_FUN;
     v->builtin = func;
+    v->docstring = malloc(strlen(doc) + 1);
+    strcpy(v->docstring, doc);
     return v;
 }
 
@@ -175,6 +177,8 @@ lval_copy(lval *v) {
     case LVAL_FUN:
         if (v->builtin) {
             x->builtin = v->builtin;
+            x->docstring = malloc(strlen(v->docstring) + 1);
+            strcpy(x->docstring, v->docstring);
         } else {
             x->builtin = NULL;
             x->env = lenv_copy(v->env);
@@ -263,7 +267,7 @@ lval_print(lval *v) {
         break;
     case LVAL_FUN:
         if (v->builtin) {
-            printf("<builtin>");
+            printf("<builtin>: \33[34m%s\033[0m", v->docstring);
         } else {
             printf("(\\ ");
             lval_print(v->formals);

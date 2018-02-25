@@ -22,9 +22,9 @@
 
 
 void
-lenv_add_builtin(lenv *e, char *symbol, lbuiltin func) {
+lenv_add_builtin(lenv *e, char *symbol, lbuiltin func, char *doc) {
     lval *key = lval_sym(symbol);
-    lval *value = lval_fun(func);
+    lval *value = lval_fun(func, doc);
     lenv_put(e, key, value);
     lval_cleanup(key);
     lval_cleanup(value);
@@ -33,31 +33,31 @@ lenv_add_builtin(lenv *e, char *symbol, lbuiltin func) {
 
 void
 lenv_add_builtins(lenv *e) {
-    lenv_add_builtin(e, "list", builtin_list);
-    lenv_add_builtin(e, "head", builtin_head);
-    lenv_add_builtin(e, "tail", builtin_tail);
-    lenv_add_builtin(e, "eval", builtin_eval);
-    lenv_add_builtin(e, "join", builtin_join);
-    lenv_add_builtin(e, "def", builtin_def);
-    lenv_add_builtin(e, "=", builtin_put);
-    lenv_add_builtin(e, "\\", builtin_lambda);
+    lenv_add_builtin(e, "list", builtin_list, "s-expression to q-expression");
+    lenv_add_builtin(e, "head", builtin_head, "first element");
+    lenv_add_builtin(e, "tail", builtin_tail, "list without first element");
+    lenv_add_builtin(e, "eval", builtin_eval, "q-expression to s-expression");
+    lenv_add_builtin(e, "join", builtin_join, "join multiple q-expressions");
+    lenv_add_builtin(e, "def", builtin_def, "assign variable(s) globally");
+    lenv_add_builtin(e, "=", builtin_put, "assign variable(s) locally");
+    lenv_add_builtin(e, "\\", builtin_lambda, "anonymous function");
 
-    lenv_add_builtin(e, "+", builtin_add);
-    lenv_add_builtin(e, "-", builtin_sub);
-    lenv_add_builtin(e, "*", builtin_mul);
-    lenv_add_builtin(e, "/", builtin_div);
+    lenv_add_builtin(e, "+", builtin_add, "add numbers");
+    lenv_add_builtin(e, "-", builtin_sub, "subtract numbers");
+    lenv_add_builtin(e, "*", builtin_mul, "multiply numbers");
+    lenv_add_builtin(e, "/", builtin_div, "divide numbers");
 
-    lenv_add_builtin(e, "if", builtin_if);
-    lenv_add_builtin(e, "==", builtin_eq);
-    lenv_add_builtin(e, "!=", builtin_ne);
-    lenv_add_builtin(e, ">", builtin_gt);
-    lenv_add_builtin(e, "<", builtin_lt);
-    lenv_add_builtin(e, ">=", builtin_ge);
-    lenv_add_builtin(e, "<=", builtin_le);
+    lenv_add_builtin(e, "if", builtin_if, "conditional check");
+    lenv_add_builtin(e, "==", builtin_eq, "equals");
+    lenv_add_builtin(e, "!=", builtin_ne, "not equals");
+    lenv_add_builtin(e, ">", builtin_gt, "greater than");
+    lenv_add_builtin(e, "<", builtin_lt, "lesser than");
+    lenv_add_builtin(e, ">=", builtin_ge, "greater than or equal to");
+    lenv_add_builtin(e, "<=", builtin_le, "lesser than or equal to");
 
-    lenv_add_builtin(e, "import", builtin_import);
-    lenv_add_builtin(e, "print", builtin_print);
-    lenv_add_builtin(e, "error", builtin_error);
+    lenv_add_builtin(e, "import", builtin_import, "add file to namespace");
+    lenv_add_builtin(e, "print", builtin_print, "print to stdout");
+    lenv_add_builtin(e, "error", builtin_error, "print error");
 }
 
 
@@ -150,10 +150,10 @@ main(int argc, char **argv) {
         }
     } else /* REPL */
     {
-        puts("Lithp 0.0.13");
-        puts("Preth Ctrl+c to Exit\n");
+        puts("lithp 0.0.14");
+        puts("preth ctrl+c to exit\n");
         for (;;) {
-            char *input = readline("lithp> ");
+            char *input = readline("> ");
             add_history(input);
 
             mpc_result_t r;

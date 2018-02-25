@@ -26,6 +26,7 @@ struct lval {
 
     /* function */
     lbuiltin builtin; /* NULL if user defined */
+    char *docstring;
     lenv *env;
     lval *formals;
     lval *body;
@@ -64,7 +65,7 @@ lval_sym(char *s);
 lval *
 lval_str(char *s);
 lval *
-lval_fun(lbuiltin func);
+lval_fun(lbuiltin func, char *doc);
 lval *
 lval_lambda(lval *formals, lval *body);
 lval *
