@@ -241,12 +241,14 @@ lval_print_str(lval *v) {
 
 void
 lval_print_expr(lval *v, char open, char close) {
-    putchar(open);
-    for (uint64_t i = 0; i < v->count; i++) {
-        lval_print(v->cell[i]);
-        if (i != (v->count - 1)) putchar(' ');
+    if (v->count) {
+        putchar(open);
+        for (uint64_t i = 0; i < v->count; i++) {
+            lval_print(v->cell[i]);
+            if (i != (v->count - 1)) putchar(' ');
+        }
+        putchar(close);
     }
-    putchar(close);
 }
 
 
@@ -289,7 +291,8 @@ lval_print(lval *v) {
 void
 lval_println(lval *v) {
     lval_print(v);
-    putchar('\n');
+    if (v->count)
+        putchar('\n');
 }
 
 
