@@ -307,7 +307,7 @@ void
 lval_println(lval *v)
 {
     lval_print(v);
-    if (v->count)
+    if (!((v->type == LVAL_SEXPR || v->type == LVAL_SEXPR) && v->count == 0))
         putchar('\n');
 }
 
