@@ -345,8 +345,16 @@ builtin_import(lenv *e, lval *a) {
     ASSERT_ARG_COUNT("import", a, 1);
     ASSERT_TYPE("import", a, 0, LVAL_STR);
 
+    int len = strlen(a->cell[0]->str);
+    char *filename = malloc(len + 4);  // .th\0
+    strcpy(filename, a->cell[0]->str);
+    filename[len+0] = '.';
+    filename[len+1] = 't';
+    filename[len+2] = 'h';
+    filename[len+3] = '\0';
+
     mpc_result_t r;
-    if (mpc_parse_contents(a->cell[0]->str, Program, &r)) {
+    if (mpc_parse_contents(filename, Program, &r)) {
         lval *expr = lval_read(r.output);
 
         while (expr->count) {

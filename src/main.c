@@ -150,7 +150,7 @@ main(int argc, char **argv) {
         }
     } else /* REPL */
     {
-        puts("lithp 0.0.14");
+        puts("lithp 0.0.15");
         puts("preth ctrl+c to exit\n");
         for (;;) {
             char *input = readline("> ");
