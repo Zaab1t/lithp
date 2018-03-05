@@ -20,7 +20,8 @@
 /*****************************************************************************/
 
 lval *
-lval_err(char *fmt, ...) {
+lval_err(char *fmt, ...)
+{
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_ERR;
 
@@ -38,7 +39,8 @@ lval_err(char *fmt, ...) {
 
 
 lval *
-lval_num(intmax_t x) {
+lval_num(intmax_t x)
+{
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_NUM;
     v->number = x;
@@ -47,7 +49,8 @@ lval_num(intmax_t x) {
 
 
 lval *
-lval_sym(char *s) {
+lval_sym(char *s)
+{
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_SYM;
     v->symbol = malloc(strlen(s) + 1);
@@ -57,7 +60,8 @@ lval_sym(char *s) {
 
 
 lval *
-lval_str(char *s) {
+lval_str(char *s)
+{
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_STR;
     v->str = malloc(strlen(s) + 1);
@@ -67,7 +71,8 @@ lval_str(char *s) {
 
 
 lval *
-lval_fun(lbuiltin func, char *doc) {
+lval_fun(lbuiltin func, char *doc)
+{
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_FUN;
     v->builtin = func;
@@ -78,7 +83,8 @@ lval_fun(lbuiltin func, char *doc) {
 
 
 lval *
-lval_lambda(lval *formals, lval *body) {
+lval_lambda(lval *formals, lval *body)
+{
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_FUN;
     v->builtin = NULL;
@@ -90,7 +96,8 @@ lval_lambda(lval *formals, lval *body) {
 
 
 lval *
-lval_sexpr(void) {
+lval_sexpr(void)
+{
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_SEXPR;
     v->count = 0;
@@ -100,7 +107,8 @@ lval_sexpr(void) {
 
 
 lval *
-lval_qexpr(void) {
+lval_qexpr(void)
+{
     lval *v = malloc(sizeof(lval));
     v->type = LVAL_QEXPR;
     v->count = 0;
@@ -110,7 +118,8 @@ lval_qexpr(void) {
 
 
 void
-lval_cleanup(lval *v) {
+lval_cleanup(lval *v)
+{
     switch (v->type) {
     case LVAL_NUM:
         break;
@@ -150,7 +159,8 @@ lval_cleanup(lval *v) {
 /*****************************************************************************/
 
 lval *
-lval_copy(lval *v) {
+lval_copy(lval *v)
+{
     lval *x = malloc(sizeof(lval));
     x->type = v->type;
 
@@ -207,7 +217,8 @@ lval_copy(lval *v) {
  *   enumeration.
  */
 char *
-ltype_to_name(int type) {
+ltype_to_name(int type)
+{
     switch (type) {
     case LVAL_ERR:
         return "Error";
@@ -230,7 +241,8 @@ ltype_to_name(int type) {
 
 
 void
-lval_print_str(lval *v) {
+lval_print_str(lval *v)
+{
     char *escaped = malloc(strlen(v->str) + 1);
     strcpy(escaped, v->str);
     escaped = mpcf_escape(escaped);
@@ -240,12 +252,14 @@ lval_print_str(lval *v) {
 
 
 void
-lval_print_expr(lval *v, char open, char close) {
+lval_print_expr(lval *v, char open, char close)
+{
     if (v->count) {
         putchar(open);
         for (uint64_t i = 0; i < v->count; i++) {
             lval_print(v->cell[i]);
-            if (i != (v->count - 1)) putchar(' ');
+            if (i != (v->count - 1))
+                putchar(' ');
         }
         putchar(close);
     }
@@ -253,7 +267,8 @@ lval_print_expr(lval *v, char open, char close) {
 
 
 void
-lval_print(lval *v) {
+lval_print(lval *v)
+{
     switch (v->type) {
     case LVAL_NUM:
         printf("%li", v->number);
@@ -289,7 +304,8 @@ lval_print(lval *v) {
 
 
 void
-lval_println(lval *v) {
+lval_println(lval *v)
+{
     lval_print(v);
     if (v->count)
         putchar('\n');
@@ -309,8 +325,10 @@ lval_println(lval *v) {
  *   TODO: return bool?
  */
 int
-lval_eq(lval *x, lval *y) {
-    if (x->type != y->type) return 0;
+lval_eq(lval *x, lval *y)
+{
+    if (x->type != y->type)
+        return 0;
 
     switch (x->type) {
     case LVAL_NUM:
@@ -326,14 +344,17 @@ lval_eq(lval *x, lval *y) {
         return (strcmp(x->str, y->str) == 0);
 
     case LVAL_FUN:
-        if (x->builtin || y->builtin) return (x->builtin == y->builtin);
+        if (x->builtin || y->builtin)
+            return (x->builtin == y->builtin);
         return (lval_eq(x->formals, y->formals) && lval_eq(x->body, y->body));
 
     case LVAL_QEXPR:
     case LVAL_SEXPR:
-        if (x->count != y->count) return 0;
+        if (x->count != y->count)
+            return 0;
         for (uint64_t i = 0; i < x->count; i++)
-            if (!lval_eq(x->cell[i], y->cell[i])) return 0;
+            if (!lval_eq(x->cell[i], y->cell[i]))
+                return 0;
         return 1;
     }
 
@@ -347,7 +368,8 @@ lval_eq(lval *x, lval *y) {
  *   Remove and return the *i*'th element in `v->cell`.
  */
 lval *
-lval_pop(lval *v, uint64_t i) {
+lval_pop(lval *v, uint64_t i)
+{
     lval *x = v->cell[i];
     memmove(&v->cell[i], &v->cell[i + 1], sizeof(lval *) * (v->count - i - 1));
     v->count--;
@@ -362,7 +384,8 @@ lval_pop(lval *v, uint64_t i) {
  *   Append *x* to *v*.
  */
 lval *
-lval_add(lval *v, lval *x) {
+lval_add(lval *v, lval *x)
+{
     v->count++;
     v->cell = realloc(v->cell, sizeof(lval *) * v->count);
     v->cell[v->count - 1] = x;
@@ -376,7 +399,8 @@ lval_add(lval *v, lval *x) {
  *   Merge two `Q-expression`s into one.
  */
 lval *
-lval_join(lval *x, lval *y) {
+lval_join(lval *x, lval *y)
+{
     while (y->count)
         x = lval_add(x, lval_pop(y, 0));
 
@@ -394,8 +418,10 @@ lval_join(lval *x, lval *y) {
  *   evaluated.
  */
 lval *
-lval_call(lenv *e, lval *f, lval *a) {
-    if (f->builtin) return f->builtin(e, a);
+lval_call(lenv *e, lval *f, lval *a)
+{
+    if (f->builtin)
+        return f->builtin(e, a);
 
     /* partial evaluation */
     while (a->count) {
@@ -447,7 +473,8 @@ lval_call(lenv *e, lval *f, lval *a) {
  *   Return the *i*th element of *v*, and throw *v* into orbit.
  */
 lval *
-lval_take(lval *v, uint64_t i) {
+lval_take(lval *v, uint64_t i)
+{
     lval *x = lval_pop(v, i);
     lval_cleanup(v);
     return x;
@@ -459,16 +486,20 @@ lval_take(lval *v, uint64_t i) {
 /*****************************************************************************/
 
 lval *
-lval_eval_sexpr(lenv *e, lval *v) {
-    if (v->count == 0) return v; /* empty expression */
+lval_eval_sexpr(lenv *e, lval *v)
+{
+    if (v->count == 0)
+        return v; /* empty expression */
 
     for (uint64_t i = 0; i < v->count; i++)
         v->cell[i] = lval_eval(e, v->cell[i]);
 
     for (uint64_t i = 0; i < v->count; i++)
-        if (v->cell[i]->type == LVAL_ERR) return lval_take(v, i);
+        if (v->cell[i]->type == LVAL_ERR)
+            return lval_take(v, i);
 
-    if (v->count == 1) return lval_take(v, 0);
+    if (v->count == 1)
+        return lval_take(v, 0);
 
     lval *f = lval_pop(v, 0);
     if (f->type != LVAL_FUN) {
@@ -489,12 +520,14 @@ lval_eval_sexpr(lenv *e, lval *v) {
  *   Evaluate a lisp value.
  */
 lval *
-lval_eval(lenv *e, lval *v) {
+lval_eval(lenv *e, lval *v)
+{
     if (v->type == LVAL_SYM) {
         lval *x = lenv_get(e, v);
         lval_cleanup(v);
         return x;
     }
-    if (v->type == LVAL_SEXPR) return lval_eval_sexpr(e, v);
+    if (v->type == LVAL_SEXPR)
+        return lval_eval_sexpr(e, v);
     return v;
 }

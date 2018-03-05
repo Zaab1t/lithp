@@ -15,7 +15,8 @@
 
 
 lenv *
-lenv_copy(lenv *e) {
+lenv_copy(lenv *e)
+{
     lenv *n = malloc(sizeof(lenv));
     n->parent = e->parent;
     n->count = e->count;
@@ -33,7 +34,8 @@ lenv_copy(lenv *e) {
 
 
 lenv *
-lenv_new(void) {
+lenv_new(void)
+{
     lenv *e = malloc(sizeof(lenv));
     e->parent = NULL;
     e->count = 0;
@@ -44,7 +46,8 @@ lenv_new(void) {
 
 
 void
-lenv_clean_up(lenv *e) {
+lenv_clean_up(lenv *e)
+{
     for (uint64_t i = 0; i < e->count; i++) {
         free(e->syms[i]);
         lval_cleanup(e->vals[i]);
@@ -56,18 +59,22 @@ lenv_clean_up(lenv *e) {
 
 
 lval *
-lenv_get(lenv *e, lval *k) {
+lenv_get(lenv *e, lval *k)
+{
     for (uint64_t i = 0; i < e->count; i++)
-        if (strcmp(e->syms[i], k->symbol) == 0) return lval_copy(e->vals[i]);
+        if (strcmp(e->syms[i], k->symbol) == 0)
+            return lval_copy(e->vals[i]);
 
-    if (e->parent) return lenv_get(e->parent, k);
+    if (e->parent)
+        return lenv_get(e->parent, k);
 
     return lval_err("Unbound symbol '%s'!", k->symbol);
 }
 
 
 void
-lenv_put(lenv *e, lval *k, lval *v) {
+lenv_put(lenv *e, lval *k, lval *v)
+{
     /* update existing value */
     for (uint64_t i = 0; i < e->count; i++) {
         if (strcmp(e->syms[i], k->symbol) == 0) {
@@ -88,7 +95,8 @@ lenv_put(lenv *e, lval *k, lval *v) {
 
 
 void
-lenv_put_global(lenv *e, lval *k, lval *v) {
+lenv_put_global(lenv *e, lval *k, lval *v)
+{
     while (e->parent)
         e = e->parent;
 

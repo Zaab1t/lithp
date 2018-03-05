@@ -41,14 +41,16 @@
 
 
 lval *
-builtin_list(lenv *e, lval *a) {
+builtin_list(lenv *e, lval *a)
+{
     a->type = LVAL_QEXPR;
     return a;
 }
 
 
 lval *
-builtin_eval(lenv *e, lval *a) {
+builtin_eval(lenv *e, lval *a)
+{
     ASSERT_ARG_COUNT("eval", a, 1);
     ASSERT_TYPE("eval", a, 0, LVAL_QEXPR);
 
@@ -59,7 +61,8 @@ builtin_eval(lenv *e, lval *a) {
 
 
 lval *
-builtin_head(lenv *e, lval *a) {
+builtin_head(lenv *e, lval *a)
+{
     ASSERT_ARG_COUNT("head", a, 1);
     ASSERT_TYPE("head", a, 0, LVAL_QEXPR);
     ASSERT_NOT_EMPTY("head", a, 0);
@@ -72,7 +75,8 @@ builtin_head(lenv *e, lval *a) {
 
 
 lval *
-builtin_tail(lenv *e, lval *a) {
+builtin_tail(lenv *e, lval *a)
+{
     ASSERT_ARG_COUNT("tail", a, 1);
     ASSERT_TYPE("tail", a, 0, LVAL_QEXPR);
     ASSERT_NOT_EMPTY("tail", a, 0);
@@ -84,7 +88,8 @@ builtin_tail(lenv *e, lval *a) {
 
 
 lval *
-builtin_join(lenv *e, lval *a) {
+builtin_join(lenv *e, lval *a)
+{
     for (uint64_t i = 0; i < a->count; i++)
         ASSERT_TYPE("join", a, i, LVAL_QEXPR);
 
@@ -98,7 +103,8 @@ builtin_join(lenv *e, lval *a) {
 
 
 lval *
-builtin_var(lenv *e, lval *a, char *func) {
+builtin_var(lenv *e, lval *a, char *func)
+{
     ASSERT_TYPE(func, a, 0, LVAL_QEXPR);
 
     lval *syms = a->cell[0];
@@ -126,19 +132,22 @@ builtin_var(lenv *e, lval *a, char *func) {
 
 
 lval *
-builtin_def(lenv *e, lval *a) {
+builtin_def(lenv *e, lval *a)
+{
     return builtin_var(e, a, "def");
 }
 
 
 lval *
-builtin_put(lenv *e, lval *a) {
+builtin_put(lenv *e, lval *a)
+{
     return builtin_var(e, a, "=");
 }
 
 
 lval *
-builtin_lambda(lenv *e, lval *a) {
+builtin_lambda(lenv *e, lval *a)
+{
     ASSERT_ARG_COUNT("\\", a, 2);
     ASSERT_TYPE("\\", a, 0, LVAL_QEXPR);
     ASSERT_TYPE("\\", a, 1, LVAL_QEXPR);
@@ -159,7 +168,8 @@ builtin_lambda(lenv *e, lval *a) {
 
 
 lval *
-builtin_print(lenv *e, lval *a) {
+builtin_print(lenv *e, lval *a)
+{
     for (uint64_t i = 0; i < a->count; i++) {
         lval_print(a->cell[i]);
         putchar(' ');
@@ -171,7 +181,8 @@ builtin_print(lenv *e, lval *a) {
 
 
 lval *
-builtin_error(lenv *e, lval *a) {
+builtin_error(lenv *e, lval *a)
+{
     ASSERT_ARG_COUNT("error", a, 1);
     ASSERT_TYPE("error", a, 0, LVAL_STR);
 
@@ -183,7 +194,8 @@ builtin_error(lenv *e, lval *a) {
 
 
 lval *
-builtin_op(lenv *e, lval *a, char *op) {
+builtin_op(lenv *e, lval *a, char *op)
+{
     /* Ensure that all args are numbers */
     for (uint64_t i = 0; i < a->count; i++)
         if (a->cell[i]->type != LVAL_NUM) {
@@ -193,14 +205,18 @@ builtin_op(lenv *e, lval *a, char *op) {
 
     lval *x = lval_pop(a, 0);
 
-    if ((strcmp(op, "-") == 0) && a->count == 0) x->number = -x->number;
+    if ((strcmp(op, "-") == 0) && a->count == 0)
+        x->number = -x->number;
 
     while (a->count > 0) {
         lval *y = lval_pop(a, 0);
 
-        if (strcmp(op, "+") == 0) x->number += y->number;
-        if (strcmp(op, "-") == 0) x->number -= y->number;
-        if (strcmp(op, "*") == 0) x->number *= y->number;
+        if (strcmp(op, "+") == 0)
+            x->number += y->number;
+        if (strcmp(op, "-") == 0)
+            x->number -= y->number;
+        if (strcmp(op, "*") == 0)
+            x->number *= y->number;
         if (strcmp(op, "/") == 0) {
             if (y->number == 0) {
                 lval_cleanup(x);
@@ -220,31 +236,36 @@ builtin_op(lenv *e, lval *a, char *op) {
 
 
 lval *
-builtin_add(lenv *e, lval *a) {
+builtin_add(lenv *e, lval *a)
+{
     return builtin_op(e, a, "+");
 }
 
 
 lval *
-builtin_sub(lenv *e, lval *a) {
+builtin_sub(lenv *e, lval *a)
+{
     return builtin_op(e, a, "-");
 }
 
 
 lval *
-builtin_mul(lenv *e, lval *a) {
+builtin_mul(lenv *e, lval *a)
+{
     return builtin_op(e, a, "*");
 }
 
 
 lval *
-builtin_div(lenv *e, lval *a) {
+builtin_div(lenv *e, lval *a)
+{
     return builtin_op(e, a, "/");
 }
 
 
 lval *
-builtin_if(lenv *e, lval *a) {
+builtin_if(lenv *e, lval *a)
+{
     ASSERT_ARG_COUNT("if", a, 3);
     ASSERT_TYPE("if", a, 0, LVAL_NUM);
     ASSERT_TYPE("if", a, 1, LVAL_QEXPR);
@@ -266,7 +287,8 @@ builtin_if(lenv *e, lval *a) {
 
 
 lval *
-builtin_ord(lenv *e, lval *a, char *op) {
+builtin_ord(lenv *e, lval *a, char *op)
+{
     ASSERT_ARG_COUNT(op, a, 2);
     ASSERT_TYPE(op, a, 0, LVAL_NUM);
     ASSERT_TYPE(op, a, 1, LVAL_NUM);
@@ -289,11 +311,13 @@ builtin_ord(lenv *e, lval *a, char *op) {
 
 
 lval *
-builtin_cmp(lenv *e, lval *a, char *op) {
+builtin_cmp(lenv *e, lval *a, char *op)
+{
     ASSERT_ARG_COUNT(op, a, 2);
 
     int r = lval_eq(a->cell[0], a->cell[1]);
-    if (strcmp(op, "!=") == 0) r = !r;
+    if (strcmp(op, "!=") == 0)
+        r = !r;
 
     lval_cleanup(a);
     return lval_num(r);
@@ -301,37 +325,43 @@ builtin_cmp(lenv *e, lval *a, char *op) {
 
 
 lval *
-builtin_gt(lenv *e, lval *a) {
+builtin_gt(lenv *e, lval *a)
+{
     return builtin_ord(e, a, ">");
 }
 
 
 lval *
-builtin_lt(lenv *e, lval *a) {
+builtin_lt(lenv *e, lval *a)
+{
     return builtin_ord(e, a, "<");
 }
 
 
 lval *
-builtin_ge(lenv *e, lval *a) {
+builtin_ge(lenv *e, lval *a)
+{
     return builtin_ord(e, a, ">=");
 }
 
 
 lval *
-builtin_le(lenv *e, lval *a) {
+builtin_le(lenv *e, lval *a)
+{
     return builtin_ord(e, a, "<=");
 }
 
 
 lval *
-builtin_eq(lenv *e, lval *a) {
+builtin_eq(lenv *e, lval *a)
+{
     return builtin_cmp(e, a, "==");
 }
 
 
 lval *
-builtin_ne(lenv *e, lval *a) {
+builtin_ne(lenv *e, lval *a)
+{
     return builtin_cmp(e, a, "!=");
 }
 
@@ -341,17 +371,18 @@ builtin_ne(lenv *e, lval *a) {
  *   Read the lval string *a* as a file and execute the code in that file.
 */
 lval *
-builtin_import(lenv *e, lval *a) {
+builtin_import(lenv *e, lval *a)
+{
     ASSERT_ARG_COUNT("import", a, 1);
     ASSERT_TYPE("import", a, 0, LVAL_STR);
 
     int len = strlen(a->cell[0]->str);
-    char *filename = malloc(len + 4);  // .th\0
+    char *filename = malloc(len + 4); // .th\0
     strcpy(filename, a->cell[0]->str);
-    filename[len+0] = '.';
-    filename[len+1] = 't';
-    filename[len+2] = 'h';
-    filename[len+3] = '\0';
+    filename[len + 0] = '.';
+    filename[len + 1] = 't';
+    filename[len + 2] = 'h';
+    filename[len + 3] = '\0';
 
     mpc_result_t r;
     if (mpc_parse_contents(filename, Program, &r)) {
@@ -359,7 +390,8 @@ builtin_import(lenv *e, lval *a) {
 
         while (expr->count) {
             lval *x = lval_eval(e, lval_pop(expr, 0));
-            if (x->type == LVAL_ERR) lval_println(x);
+            if (x->type == LVAL_ERR)
+                lval_println(x);
             lval_cleanup(x);
         }
 

@@ -22,7 +22,8 @@
 
 
 void
-lenv_add_builtin(lenv *e, char *symbol, lbuiltin func, char *doc) {
+lenv_add_builtin(lenv *e, char *symbol, lbuiltin func, char *doc)
+{
     lval *key = lval_sym(symbol);
     lval *value = lval_fun(func, doc);
     lenv_put(e, key, value);
@@ -32,7 +33,8 @@ lenv_add_builtin(lenv *e, char *symbol, lbuiltin func, char *doc) {
 
 
 void
-lenv_add_builtins(lenv *e) {
+lenv_add_builtins(lenv *e)
+{
     lenv_add_builtin(e, "list", builtin_list, "s-expression to q-expression");
     lenv_add_builtin(e, "head", builtin_head, "first element");
     lenv_add_builtin(e, "tail", builtin_tail, "list without first element");
@@ -66,16 +68,19 @@ lval_read(mpc_ast_t *t);
 
 
 lval *
-lval_read_num(mpc_ast_t *node) {
+lval_read_num(mpc_ast_t *node)
+{
     errno = 0;
     long x = strtol(node->contents, NULL, 10);
-    if (errno == ERANGE) return lval_err("Invalid number");
+    if (errno == ERANGE)
+        return lval_err("Invalid number");
     return lval_num(x);
 }
 
 
 lval *
-lval_read_str(mpc_ast_t *node) {
+lval_read_str(mpc_ast_t *node)
+{
     /* unescape and remove quotation chars */
     node->contents[strlen(node->contents) - 1] = '\0';
     char *unescaped = malloc(strlen(node->contents + 1) + 1);
@@ -89,23 +94,36 @@ lval_read_str(mpc_ast_t *node) {
 
 
 lval *
-lval_read(mpc_ast_t *node) {
-    if (strstr(node->tag, "number")) return lval_read_num(node);
-    if (strstr(node->tag, "string")) return lval_read_str(node);
-    if (strstr(node->tag, "symbol")) return lval_sym(node->contents);
+lval_read(mpc_ast_t *node)
+{
+    if (strstr(node->tag, "number"))
+        return lval_read_num(node);
+    if (strstr(node->tag, "string"))
+        return lval_read_str(node);
+    if (strstr(node->tag, "symbol"))
+        return lval_sym(node->contents);
 
     lval *x = NULL;
-    if (strcmp(node->tag, ">") == 0) x = lval_sexpr();
-    if (strstr(node->tag, "sexpr")) x = lval_sexpr();
-    if (strstr(node->tag, "qexpr")) x = lval_qexpr();
+    if (strcmp(node->tag, ">") == 0)
+        x = lval_sexpr();
+    if (strstr(node->tag, "sexpr"))
+        x = lval_sexpr();
+    if (strstr(node->tag, "qexpr"))
+        x = lval_qexpr();
 
     for (int i = 0; i < node->children_num; i++) {
-        if (strcmp(node->children[i]->contents, "(") == 0) continue;
-        if (strcmp(node->children[i]->contents, ")") == 0) continue;
-        if (strcmp(node->children[i]->contents, "}") == 0) continue;
-        if (strcmp(node->children[i]->contents, "{") == 0) continue;
-        if (strcmp(node->children[i]->tag, "regex") == 0) continue;
-        if (strstr(node->children[i]->tag, "comment")) continue;
+        if (strcmp(node->children[i]->contents, "(") == 0)
+            continue;
+        if (strcmp(node->children[i]->contents, ")") == 0)
+            continue;
+        if (strcmp(node->children[i]->contents, "}") == 0)
+            continue;
+        if (strcmp(node->children[i]->contents, "{") == 0)
+            continue;
+        if (strcmp(node->children[i]->tag, "regex") == 0)
+            continue;
+        if (strstr(node->children[i]->tag, "comment"))
+            continue;
         x = lval_add(x, lval_read(node->children[i]));
     }
 
@@ -114,7 +132,8 @@ lval_read(mpc_ast_t *node) {
 
 
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
     Number = mpc_new("number");
     String = mpc_new("string");
     Comment = mpc_new("comment");
@@ -145,7 +164,8 @@ main(int argc, char **argv) {
         for (uint8_t i = 1; i < argc; i++) {
             lval *args = lval_add(lval_sexpr(), lval_str(argv[i]));
             lval *x = builtin_import(e, args);
-            if (x->type == LVAL_ERR) lval_println(x);
+            if (x->type == LVAL_ERR)
+                lval_println(x);
             lval_cleanup(x);
         }
     } else /* REPL */

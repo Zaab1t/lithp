@@ -25,8 +25,7 @@ typedef enum {
  *   represent any value in lithp and is essentially a poor mans
  *   duck typing.
 */
-struct lval
-{
+struct lval {
     lval_type type;
 
     /* could we use a union here? */
@@ -51,8 +50,7 @@ struct lval
 };
 
 
-struct lenv
-{
+struct lenv {
     lenv *parent; /* top parent is NULL */
     uint64_t count;
     char **syms;
@@ -63,8 +61,7 @@ struct lenv
 /* LVAL */
 lval *
 lval_err(char *fmt, ...);
-lval *
-lval_num(intmax_t);
+lval *lval_num(intmax_t);
 lval *
 lval_sym(char *);
 lval *
@@ -93,7 +90,7 @@ lval_join(lval *, lval *);
 lval *
 lval_call(lenv *, lval *, lval *);
 lval *
-lval_take(lval *, uint64_t );
+lval_take(lval *, uint64_t);
 lval *
 lval_eval(lenv *, lval *);
 lval *
