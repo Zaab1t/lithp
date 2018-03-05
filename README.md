@@ -7,7 +7,7 @@ expressions are written like `{}` instead of `'()`.
 Quoted lists are referred to as q-expresisons and normal lists are
 s-expressions ofc.
 
-See `builtins.th` and the files in `examples/` for syntax.
+See `stdlib.th` and the files in `examples/` for syntax.
 
 
 ## Getting started

@@ -1,3 +1,5 @@
+(import 'stdlib.th')
+
 (fun {day_name d} {
     case d
         {0 'Monday'}
@@ -6,5 +8,8 @@
         {3 'Thursday'}
         {4 'Friday'}
         {5 'Saturday'}
-        {6 'Saturday'}
+        {6 'Sunday'}
 })
+
+(print (day_name 3))
+(print (day_name 4))
