@@ -25,7 +25,8 @@ typedef enum {
  *   represent any value in lithp and is essentially a poor mans
  *   duck typing.
 */
-struct lval {
+struct lval
+{
     lval_type type;
 
     /* could we use a union here? */
@@ -50,7 +51,8 @@ struct lval {
 };
 
 
-struct lenv {
+struct lenv
+{
     lenv *parent; /* top parent is NULL */
     uint64_t count;
     char **syms;
@@ -62,11 +64,11 @@ struct lenv {
 lval *
 lval_err(char *fmt, ...);
 lval *
-lval_num(intmax_t x);
+lval_num(intmax_t);
 lval *
-lval_sym(char *s);
+lval_sym(char *);
 lval *
-lval_str(char *s);
+lval_str(char *);
 lval *
 lval_fun(lbuiltin func, char *doc);
 lval *
@@ -77,102 +79,102 @@ lval *
 lval_qexpr(void);
 
 void
-lval_cleanup(lval *v);
+lval_cleanup(lval *);
 int
-lval_eq(lval *x, lval *y);
+lval_eq(lval *, lval *);
 lval *
-lval_copy(lval *v);
+lval_copy(lval *);
 lval *
-lval_pop(lval *v, uint64_t i);
+lval_pop(lval *, uint64_t);
 lval *
-lval_add(lval *v, lval *x);
+lval_add(lval *, lval *);
 lval *
-lval_join(lval *x, lval *y);
+lval_join(lval *, lval *);
 lval *
-lval_call(lenv *e, lval *f, lval *a);
+lval_call(lenv *, lval *, lval *);
 lval *
-lval_take(lval *v, uint64_t i);
+lval_take(lval *, uint64_t );
 lval *
-lval_eval(lenv *e, lval *v);
+lval_eval(lenv *, lval *);
 lval *
-lval_eval_sexpr(lenv *e, lval *v);
+lval_eval_sexpr(lenv *, lval *);
 
 void
-lval_print(lval *v);
+lval_print(lval *);
 void
-lval_println(lval *v);
+lval_println(lval *);
 void
-lval_expr_print(lval *v, char open, char close);
+lval_expr_print(lval *, char open, char close);
 char *
 ltype_to_name(int type);
 
 lval *
-lval_read(mpc_ast_t *t);
+lval_read(mpc_ast_t *);
 
 
 /* LENV */
 lenv *
 lenv_new(void);
 void
-lenv_put(lenv *e, lval *k, lval *v);
+lenv_put(lenv *, lval *, lval *);
 void
-lenv_put_global(lenv *e, lval *k, lval *v);
+lenv_put_global(lenv *, lval *, lval *);
 lval *
-lenv_get(lenv *e, lval *k);
+lenv_get(lenv *, lval *);
 void
-lenv_clean_up(lenv *e);
+lenv_clean_up(lenv *);
 lenv *
-lenv_copy(lenv *e);
+lenv_copy(lenv *);
 
 
 /* BUILTINS */
 lval *
-builtin_list(lenv *e, lval *v);
+builtin_list(lenv *, lval *);
 lval *
-builtin_head(lenv *e, lval *v);
+builtin_head(lenv *, lval *);
 lval *
-builtin_tail(lenv *e, lval *v);
+builtin_tail(lenv *, lval *);
 lval *
-builtin_eval(lenv *e, lval *v);
+builtin_eval(lenv *, lval *);
 lval *
-builtin_join(lenv *e, lval *v);
+builtin_join(lenv *, lval *);
 lval *
-builtin_def(lenv *e, lval *v);
+builtin_def(lenv *, lval *);
 lval *
-builtin_lambda(lenv *e, lval *v);
+builtin_lambda(lenv *, lval *);
 lval *
-builtin_put(lenv *e, lval *v);
+builtin_put(lenv *, lval *);
 
 lval *
-builtin_add(lenv *e, lval *v);
+builtin_add(lenv *, lval *);
 lval *
-builtin_sub(lenv *e, lval *v);
+builtin_sub(lenv *, lval *);
 lval *
-builtin_mul(lenv *e, lval *v);
+builtin_mul(lenv *, lval *);
 lval *
-builtin_div(lenv *e, lval *v);
+builtin_div(lenv *, lval *);
 
 lval *
-builtin_if(lenv *e, lval *v);
+builtin_if(lenv *, lval *);
 lval *
-builtin_eq(lenv *e, lval *v);
+builtin_eq(lenv *, lval *);
 lval *
-builtin_ne(lenv *e, lval *v);
+builtin_ne(lenv *, lval *);
 lval *
-builtin_gt(lenv *e, lval *v);
+builtin_gt(lenv *, lval *);
 lval *
-builtin_lt(lenv *e, lval *v);
+builtin_lt(lenv *, lval *);
 lval *
-builtin_ge(lenv *e, lval *v);
+builtin_ge(lenv *, lval *);
 lval *
-builtin_le(lenv *e, lval *v);
+builtin_le(lenv *, lval *);
 
 lval *
-builtin_import(lenv *e, lval *v);
+builtin_import(lenv *, lval *);
 lval *
-builtin_print(lenv *e, lval *v);
+builtin_print(lenv *, lval *);
 lval *
-builtin_error(lenv *e, lval *v);
+builtin_error(lenv *, lval *);
 
 
 /* PARSER */
