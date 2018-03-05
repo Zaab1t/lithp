@@ -1,0 +1,27 @@
+(import 'stdlib')
+
+
+(fun {_pow acc base power} {
+    (if (== power 0)
+        {acc}
+        {_pow (* acc base) base (- power 1)}
+    )
+})
+
+
+(fun {pow base power} {_pow 1 base power})
+
+
+(print (pow 3 1))
+(print (pow 3 2))
+(print (pow 3 3))
+
+
+(fun {abs x} {
+    (if (> x 0) {x} {- x})
+})
+
+
+(print (abs -5))
+(print (abs 14))
+(print (abs -0))
