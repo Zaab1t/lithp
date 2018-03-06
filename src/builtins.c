@@ -236,6 +236,12 @@ builtin_op(lenv *e, lval *a, char *op)
 }
 
 
+/*
+ * Function:  builtin_add
+ * ----------------------
+ *   This is `+` in lithp. It should work on sexprs consisting only of
+ *   numbers or only of strings.
+ */
 lval *
 builtin_add(lenv *env, lval *sexpr)
 {
