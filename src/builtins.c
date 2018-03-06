@@ -237,12 +237,12 @@ builtin_op(lenv *e, lval *a, char *op)
 
 
 lval *
-builtin_add(lenv *e, lval *a)
+builtin_add(lenv *env, lval *sexpr)
 {
-    lval *value = lval_pop(a, 0);
+    lval *value = lval_pop(sexpr, 0);
 
-    while (a->count > 0) {
-        lval *next = lval_pop(a, 0);
+    while (sexpr->count > 0) {
+        lval *next = lval_pop(sexpr, 0);
         switch(value->type) {
             case LVAL_NUM:
                 value->number += next->number;
@@ -255,7 +255,7 @@ builtin_add(lenv *e, lval *a)
         }
         lval_cleanup(next);
     }
-    lval_cleanup(a);
+    lval_cleanup(sexpr);
     return value;
 }
 
