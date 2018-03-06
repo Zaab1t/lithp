@@ -34,8 +34,5 @@ format:
 $(EXEC): $(OBJ)
 	$(CC) -I$(INCDIR) $(CFLAGS) $(OBJ) $(LIB) -o $(EXEC)
 
-$(OBJDIR)/%.o: $(OBJDIR) $(SRCDIR)/%.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) -I$(INCDIR) $(CFLAGS) $^ $(LIB) -c -o $@
-
-$(OBJDIR):
-	mkdir -p $@
