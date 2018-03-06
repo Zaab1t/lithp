@@ -10,6 +10,7 @@
 
 
 #include <stdint.h>
+#include <string.h>
 
 #include "mpc.h"
 
@@ -238,7 +239,24 @@ builtin_op(lenv *e, lval *a, char *op)
 lval *
 builtin_add(lenv *e, lval *a)
 {
-    return builtin_op(e, a, "+");
+    lval *value = lval_pop(a, 0);
+
+    while (a->count > 0) {
+        lval *next = lval_pop(a, 0);
+        switch(value->type) {
+            case LVAL_NUM:
+                value->number += next->number;
+                break;
+            case LVAL_STR:
+                strcat(value->str, next->str);
+                break;
+            default:
+                value = lval_err("Not a supported type for +");
+        }
+        lval_cleanup(next);
+    }
+    lval_cleanup(a);
+    return value;
 }
 
 
