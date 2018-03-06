@@ -1,16 +1,41 @@
-CC ?= gcc
-CFLAGS ?= -std=c99 -Wall -Wextra -pedantic
+CC := gcc
+CFLAGS := -std=c99 -Wall -Wextra -Wshadow
 
-TARGET_EXEC ?= lithp
-SRC_DIR ?= ./src
-INC_DIR ?= ./include
+# Run make as `DEBUG=1 make` to disable optimizations.
+DEBUG ?= 0
+ifeq ($(DEBUG), 1)
+	CFLAGS += -Og -g
+else
+	CFLAGS += -Ofast -flto
+endif
 
-SRCS := $(shell find $(SRC_DIR) -name *.c)
-DEPS := $(shell find $(INC_DIR) -name *.c)
+SRCDIR := ./src
+OBJDIR := ./obj
+INCDIR := ./include
 
-build:
-	$(CC) $(CFLAGS) $(SRCS) -O0 -g -I $(INC_DIR) $(DEPS) -ledit -lm -o $(TARGET_EXEC)
+SRC := $(wildcard $(SRCDIR)/*.c)
+OBJ := $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+LIB := -lm -ledit
 
+EXEC := lithp
 
+.PHONY: all
+all: $(EXEC)
+
+.PHONY: clean
+clean:
+	rm -f $(EXEC)
+	rm -f $(OBJ)
+
+.PHONY: format
 format:
-	clang-format -i -style=file $(SRCS) src/lithp.h
+	clang-format -i -style=file $(SRC) src/lithp.h
+
+$(EXEC): $(OBJ)
+	$(CC) -I$(INCDIR) $(CFLAGS) $(OBJ) $(LIB) -o $(EXEC)
+
+$(OBJDIR)/%.o: $(OBJDIR) $(SRCDIR)/%.c
+	$(CC) -I$(INCDIR) $(CFLAGS) $^ $(LIB) -c -o $@
+
+$(OBJDIR):
+	mkdir -p $@
