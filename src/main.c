@@ -103,13 +103,7 @@ lval_read(mpc_ast_t *node)
     if (strstr(node->tag, "symbol"))
         return lval_sym(node->contents);
 
-    lval *x = NULL;
-    if (strcmp(node->tag, ">") == 0)
-        x = lval_sexpr();
-    if (strstr(node->tag, "sexpr"))
-        x = lval_sexpr();
-    if (strstr(node->tag, "qexpr"))
-        x = lval_qexpr();
+    lval *x = lval_sexpr();
 
     for (int i = 0; i < node->children_num; i++) {
         if (strcmp(node->children[i]->contents, "(") == 0)
@@ -139,7 +133,6 @@ main(int argc, char **argv)
     Comment = mpc_new("comment");
     Symbol = mpc_new("symbol");
     Sexpr = mpc_new("sexpr");
-    Qexpr = mpc_new("qexpr");
     Expr = mpc_new("expr");
     Program = mpc_new("program");
 
@@ -150,12 +143,11 @@ main(int argc, char **argv)
             comment  : /;[^\\r\\n]*/ ;\
             symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!:,&]+/ ;\
             sexpr    : '(' <expr>* ')' ;\
-            qexpr    : '{' <expr>* '}' ;\
             expr     : <number> | <string> | <comment> \
-                     | <symbol> | <sexpr> | <qexpr> ;\
+                     | <symbol> | <sexpr> ;\
             program  : /^/ <expr>* /$/ ;\
         ",
-        Number, String, Comment, Symbol, Sexpr, Qexpr, Expr, Program);
+        Number, String, Comment, Symbol, Sexpr, Expr, Program);
 
     lenv *e = lenv_new();
     lenv_add_builtins(e);
@@ -168,8 +160,7 @@ main(int argc, char **argv)
                 lval_println(x);
             lval_cleanup(x);
         }
-    } else /* REPL */
-    {
+    } else {  /* REPL */
         puts("lithp 0.0.15");
         puts("preth ctrl+c to exit\n");
         for (;;) {

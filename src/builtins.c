@@ -53,7 +53,7 @@ lval *
 builtin_eval(lenv *e, lval *a)
 {
     ASSERT_ARG_COUNT("eval", a, 1);
-    ASSERT_TYPE("eval", a, 0, LVAL_QEXPR);
+    //ASSERT_TYPE("eval", a, 0, LVAL_QEXPR);
 
     lval *x = lval_take(a, 0);
     x->type = LVAL_SEXPR;
@@ -65,7 +65,7 @@ lval *
 builtin_head(lenv *e, lval *a)
 {
     ASSERT_ARG_COUNT("head", a, 1);
-    ASSERT_TYPE("head", a, 0, LVAL_QEXPR);
+    //ASSERT_TYPE("head", a, 0, LVAL_QEXPR);
     ASSERT_NOT_EMPTY("head", a, 0);
 
     lval *v = lval_take(a, 0);
@@ -79,7 +79,7 @@ lval *
 builtin_tail(lenv *e, lval *a)
 {
     ASSERT_ARG_COUNT("tail", a, 1);
-    ASSERT_TYPE("tail", a, 0, LVAL_QEXPR);
+    //ASSERT_TYPE("tail", a, 0, LVAL_QEXPR);
     ASSERT_NOT_EMPTY("tail", a, 0);
 
     lval *v = lval_take(a, 0);
@@ -91,8 +91,8 @@ builtin_tail(lenv *e, lval *a)
 lval *
 builtin_join(lenv *e, lval *a)
 {
-    for (uint64_t i = 0; i < a->count; i++)
-        ASSERT_TYPE("join", a, i, LVAL_QEXPR);
+    //for (uint64_t i = 0; i < a->count; i++)
+        //ASSERT_TYPE("join", a, i, LVAL_QEXPR);
 
     lval *x = lval_pop(a, 0);
     while (a->count)
@@ -106,7 +106,7 @@ builtin_join(lenv *e, lval *a)
 lval *
 builtin_var(lenv *e, lval *a, char *func)
 {
-    ASSERT_TYPE(func, a, 0, LVAL_QEXPR);
+    //ASSERT_TYPE(func, a, 0, LVAL_QEXPR);
 
     lval *syms = a->cell[0];
     /* ensure valid symbols */
@@ -150,8 +150,8 @@ lval *
 builtin_lambda(lenv *e, lval *a)
 {
     ASSERT_ARG_COUNT("\\", a, 2);
-    ASSERT_TYPE("\\", a, 0, LVAL_QEXPR);
-    ASSERT_TYPE("\\", a, 1, LVAL_QEXPR);
+    //ASSERT_TYPE("\\", a, 0, LVAL_QEXPR);
+    //ASSERT_TYPE("\\", a, 1, LVAL_QEXPR);
 
     /* Verify that first Q-Expression only contains symbols */
     for (uint64_t i = 0; i < a->cell[0]->count; i++)
@@ -245,10 +245,10 @@ builtin_op(lenv *e, lval *a, char *op)
 lval *
 builtin_add(lenv *env, lval *sexpr)
 {
-    lval *value = lval_pop(sexpr, 0);
+    lval *value = lval_eval(env, lval_pop(sexpr, 0));
 
     while (sexpr->count > 0) {
-        lval *next = lval_pop(sexpr, 0);
+        lval *next = lval_eval(env, lval_pop(sexpr, 0));
         switch(value->type) {
             case LVAL_NUM:
                 value->number += next->number;
@@ -292,8 +292,8 @@ builtin_if(lenv *e, lval *a)
 {
     ASSERT_ARG_COUNT("if", a, 3);
     ASSERT_TYPE("if", a, 0, LVAL_NUM);
-    ASSERT_TYPE("if", a, 1, LVAL_QEXPR);
-    ASSERT_TYPE("if", a, 2, LVAL_QEXPR);
+    //ASSERT_TYPE("if", a, 1, LVAL_QEXPR);
+    //ASSERT_TYPE("if", a, 2, LVAL_QEXPR);
 
     lval *x;
     a->cell[1]->type = LVAL_SEXPR;

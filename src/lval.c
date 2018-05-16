@@ -106,17 +106,6 @@ lval_sexpr(void)
 }
 
 
-lval *
-lval_qexpr(void)
-{
-    lval *v = malloc(sizeof(lval));
-    v->type = LVAL_QEXPR;
-    v->count = 0;
-    v->cell = NULL;
-    return v;
-}
-
-
 void
 lval_cleanup(lval *v)
 {
@@ -145,7 +134,6 @@ lval_cleanup(lval *v)
         break;
 
     case LVAL_SEXPR:
-    case LVAL_QEXPR:
         for (uint64_t i = 0; i < v->count; i++)
             lval_cleanup(v->cell[i]);
         free(v->cell);
@@ -198,7 +186,6 @@ lval_copy(lval *v)
         break;
 
     case LVAL_SEXPR:
-    case LVAL_QEXPR:
         x->count = v->count;
         x->cell = malloc(sizeof(lval *) * x->count);
         for (uint64_t i = 0; i < x->count; i++)
@@ -232,8 +219,6 @@ ltype_to_name(int type)
         return "Function";
     case LVAL_SEXPR:
         return "S-Expression";
-    case LVAL_QEXPR:
-        return "Q-Expression";
     default:
         return "Not my type";
     }
@@ -296,9 +281,6 @@ lval_print(lval *v)
     case LVAL_SEXPR:
         lval_print_expr(v, '(', ')');
         break;
-    case LVAL_QEXPR:
-        lval_print_expr(v, '{', '}');
-        break;
     }
 }
 
@@ -348,7 +330,6 @@ lval_eq(lval *x, lval *y)
             return (x->builtin == y->builtin);
         return (lval_eq(x->formals, y->formals) && lval_eq(x->body, y->body));
 
-    case LVAL_QEXPR:
     case LVAL_SEXPR:
         if (x->count != y->count)
             return 0;
@@ -515,8 +496,8 @@ lval_eval_sexpr(lenv *e, lval *v)
 
 
 /*
- * Function  lval_eval
- * -------------------
+ * Function:  lval_eval
+ * --------------------
  *   Evaluate a lisp value.
  */
 lval *
