@@ -245,10 +245,10 @@ builtin_op(lenv *e, lval *a, char *op)
 lval *
 builtin_add(lenv *env, lval *sexpr)
 {
-    lval *value = lval_eval(env, lval_pop(sexpr, 0));
+    lval *value = lval_pop(sexpr, 0);
 
     while (sexpr->count > 0) {
-        lval *next = lval_eval(env, lval_pop(sexpr, 0));
+        lval *next = lval_pop(sexpr, 0);
         switch(value->type) {
             case LVAL_NUM:
                 value->number += next->number;
@@ -296,8 +296,8 @@ builtin_if(lenv *e, lval *a)
     //ASSERT_TYPE("if", a, 2, LVAL_QEXPR);
 
     lval *x;
-    a->cell[1]->type = LVAL_SEXPR;
-    a->cell[2]->type = LVAL_SEXPR;
+    //a->cell[1]->type = LVAL_SEXPR;
+    //a->cell[2]->type = LVAL_SEXPR;
 
     if (a->cell[0]->number) {
         x = lval_eval(e, lval_pop(a, 1));
