@@ -184,6 +184,6 @@ main(int argc, char **argv)
 
     lenv_clean_up(e);
     mpc_cleanup(
-        8, Number, String, Comment, Symbol, Sexpr, Qexpr, Expr, Program);
+        7, Number, String, Comment, Symbol, Sexpr, Expr, Program);
     return 0;
 }
